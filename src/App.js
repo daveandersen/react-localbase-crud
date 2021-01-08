@@ -3,7 +3,6 @@
 //2. Solve Delete
 //3. Complete Axios
 
-
 import React from 'react';
 import './App.css';
 import Localbase from 'localbase';
@@ -60,6 +59,17 @@ class App extends React.Component {
     // }
   }
 
+  componentDidUpdate() {
+    db.collection('messages').get()
+      .then((messages) => {
+        if (messages.length > 0 && Array.isArray(messages)) {
+          this.setState({ data: messages })
+        } else {
+          console.log("Error");
+        }
+      })
+  }
+
   submitForm = (e) => {
     e.preventDefault();
     const inputValue = e.target.input.value;
@@ -67,6 +77,7 @@ class App extends React.Component {
       (prevState) => ({ data: [...prevState.data, inputValue] }),
       () => {
         // window.localStorage.setItem('data', JSON.stringify(this.state.data));
+        console.log(this.state.data)
         db.collection('messages').add({
           id: Date.now(),
           messages: inputValue
@@ -86,7 +97,7 @@ class App extends React.Component {
     const newData = [...data];
     newData[isEditable] = inputValue;
     console.log(isEditable)
-    console.log(typeof(newData))
+    console.log(typeof (newData))
     console.log(newData)
     this.setState({ data: newData }, () => {
       // window.localStorage.setItem('data', JSON.stringify(this.state.data));
@@ -96,27 +107,15 @@ class App extends React.Component {
     });
   }
 
-  deleteData = () => {
+  deleteData = messageid => () => {
     const { data, isEditable } = this.state;
-    const pos = isEditable;
     const newData = [...data];
     const filteredData = newData.filter((input, index) => index !== isEditable);
     this.setState({ data: filteredData, isEditable: null }, () => {
       // window.localStorage.setItem('data', JSON.stringify(this.state.data));
-      db.collection('messages').doc({ id: pos }).delete()
+      db.collection('messages').doc({ id: messageid }).delete()
     });
   }
-
-  // deleteData1 = (id) => {
-  //   const { data, isEditable } = this.state;
-  //   const newData = [...data];
-  //   const filteredData = newData.filter((input, index) => index !== isEditable);
-  //   this.setState({ data: filteredData, isEditable: null }, () => {
-  //     // window.localStorage.setItem('data', JSON.stringify(this.state.data));
-  //     db.collection('messages').doc({ id: id }).delete()
-  //   });
-  // }
-
 
   render() {
     const { data, isEditable } = this.state;
@@ -137,10 +136,10 @@ class App extends React.Component {
                 </div>
                 <div style={{ display: `${isEditable !== index ? 'none' : 'block'}` }}>
                   <form onSubmit={(e) => this.updateForm(e, input.id)}>
-                    <input type="text" name="input" defaultValue={input} />
+                    <input type="text" name="input" defaultValue={input.messages} />
                     <button type="submit">update</button>
                   </form>
-                  <button type='button' onClick={this.deleteData}>
+                  <button type='button' onClick={this.deleteData(input.id)}>
                     Delete
                   </button>
                 </div>
