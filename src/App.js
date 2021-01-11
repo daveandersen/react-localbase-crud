@@ -32,9 +32,6 @@ class App extends React.Component {
           console.log("Error");
         }
       })
-      .then(() => {
-        console.log(this.state.data)
-      })
 
     // db.collection('messages').get()
     // .then((messages) => {
@@ -59,15 +56,17 @@ class App extends React.Component {
     // }
   }
 
-  componentDidUpdate() {
-    db.collection('messages').get()
+  componentDidUpdate(prevProps, prevState) {
+    console.log(prevState)
+    // console.log(this.state.data)
+    /* db.collection('messages').get()
       .then((messages) => {
         if (messages.length > 0 && Array.isArray(messages)) {
-          this.setState({ data: messages })
+          this.setState({data: messages})
         } else {
           console.log("Error");
         }
-      })
+      }) */
   }
 
   submitForm = (e) => {
