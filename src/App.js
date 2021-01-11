@@ -56,17 +56,10 @@ class App extends React.Component {
     // }
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState, preState) {
+    console.log(preState);
     console.log(prevState)
-    // console.log(this.state.data)
-    /* db.collection('messages').get()
-      .then((messages) => {
-        if (messages.length > 0 && Array.isArray(messages)) {
-          this.setState({data: messages})
-        } else {
-          console.log("Error");
-        }
-      }) */
+
   }
 
   submitForm = (e) => {
