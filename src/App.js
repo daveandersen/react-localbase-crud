@@ -1,8 +1,3 @@
-//GOAL
-//1. Fix Update
-//2. Solve Delete
-//3. Complete Axios
-
 import React from 'react';
 import './App.css';
 import Localbase from 'localbase';
@@ -22,51 +17,14 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    // let check = window.localStorage.getItem('data');
-    let check = db.collection('messages').get();
-    console.log(check);
-
-    // db.collection('messages').add()
-
-    // db.collection('messages').get()
-    //   .then((messages) => {
-    //     if (messages.length > 0 && Array.isArray(messages)) {
-    //       this.setState({ data: messages })
-    //     } else {
-    //       console.log("Error");
-    //     }
-    //   })
-    MessageService.getAll().then((response) => {
-      console.log(response)
-      this.setState({data: response.data})
-    })
-    
-
-    // db.collection('messages').get()
-    // .then((messages) => {
-    //   const response = messages.json();
-
-    //   response.then(function(response){
-    //     this.setState(response)
-    //   })
-    // })
-
-    // const length = db.collection('messages').get().then( messages => {
-    //   return Promise.resolve(messages.length)
-    // })
-
-    // check = JSON.parse(check);
-    // if (Array.isArray(check) && check.length > 0) {
-    //   this.setState({data: check});
-    // }
-
-    // if (typeof(check) === 'object' && Object.values(check) > 0){
-    //   this.setState({data: check})
-    // }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-
+     db.collection('messages').get()
+      .then((messages) => {
+        if (messages.length > 0 && Array.isArray(messages)) {
+          this.setState({ data: messages })
+        } else {
+          console.log("Empty Data");
+        }
+      })
   }
 
   submitForm = (e) => {
@@ -79,15 +37,12 @@ class App extends React.Component {
     this.setState(
       (prevState) => ({ data: [...prevState.data, inputData] }),
       () => {
-        // window.localStorage.setItem('data', JSON.stringify(this.state.data));
         console.log(this.state.data)
         db.collection('messages').add(inputData)
       }
     );
-    MessageService.createData(inputData);    
-    // db.collection('messages').add({
-      
-    // })
+
+    MessageService.createData(inputData)
   }
 
   edit = (index) => {
@@ -103,7 +58,6 @@ class App extends React.Component {
     data[isEditable].message = inputValue;
     
     this.setState({ data: data }, () => {
-      // window.localStorage.setItem('data', JSON.stringify(this.state.data));
       db.collection('messages').doc({ id: messageid }).update({
         id: messageid, 
         message: inputValue
@@ -115,16 +69,18 @@ class App extends React.Component {
   }
 
   deleteData = messageid => () => {
-    const { data, isEditable } = this.state;
+    const { data, isEditable } = this.state; 
+
     const filteredData = data.filter((input, index) => index !== isEditable);
     this.setState({ data: filteredData, isEditable: null }, () => {
-      // window.localStorage.setItem('data', JSON.stringify(this.state.data));
+      console.log("Hello")
       db.collection('messages').doc({ id: messageid }).delete()
     });
 
     MessageService.get(messageid).then((oldData) => {
+      console.log("Hai")
       MessageService.deleteData(oldData.data[0]._id)
-    })
+    }) 
   }
 
   render() {
