@@ -11,9 +11,22 @@ export const getPosts = async (req, res) => {
     }
 }
 
+export const getOne = async (req, res) => {
+    const id = req.params.id
+
+    try{
+        const postMessage = await PostMessage.find({id: id}, function(err,obj) {console.log(obj)})
+
+        res.status(200).json(postMessage);
+    } catch ( error ) {
+        res.status(404).json({message: error.message});
+    }
+}
+
 export const createPost = async (req, res) => {
     console.log(req.body)
     const newPost = new PostMessage({
+        id: req.body.id,
         message: req.body.message
     });
 

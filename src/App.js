@@ -34,12 +34,9 @@ class App extends React.Component {
     //       console.log("Error");
     //     }
     //   })
-    MessageService.getAll().then((messages) => {
-      if (messages.length > 0 && Array.isArray(messages)) {
-        this.setState({ data: messages })
-      } else {
-        console.log("Error");
-      }
+    MessageService.getAll().then((response) => {
+      console.log(response)
+      this.setState({data: response.data})
     })
     
 
@@ -67,8 +64,8 @@ class App extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState, preState) {
-    console.log(preState);
-    console.log(prevState)
+    // console.log(preState);
+    // console.log(prevState)
 
   }
 
@@ -81,16 +78,19 @@ class App extends React.Component {
         // window.localStorage.setItem('data', JSON.stringify(this.state.data));
         console.log(this.state.data)
         db.collection('messages').add({
-          id: Date.now(),
+          //id: Date.now(),
           message: inputValue
         })
       }
     );
-    console.log(this.state)
     MessageService.createData({
       id: Date.now(),
       message: inputValue}
     );
+
+    // db.collection('messages').add({
+
+    // })
   }
 
   edit = (index) => {
@@ -109,7 +109,7 @@ class App extends React.Component {
     this.setState({ data: newData }, () => {
       // window.localStorage.setItem('data', JSON.stringify(this.state.data));
       db.collection('messages').doc({ id: messageid }).update({
-        messages: inputValue
+        message: inputValue
       })
     });
   }
@@ -126,6 +126,7 @@ class App extends React.Component {
 
   render() {
     const { data, isEditable } = this.state;
+    console.log(data)
 
     return (
       <div className="app">
@@ -135,10 +136,10 @@ class App extends React.Component {
         </form>
         <div className="data">
           <ul>
-            {data.map((input, index) => (
-              <li key={input.messages + index}>
+            {data.map((input, index) => ( 
+              <li key={input.message + index}>
                 <div>
-                  {input.messages}
+                  {input.message}
                   <button onClick={() => this.edit(index)}>Edit</button>
                 </div>
                 <div style={{ display: `${isEditable !== index ? 'none' : 'block'}` }}>
