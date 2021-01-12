@@ -70,3 +70,8 @@ export const deleteMessage = async (req, res) => {
     res.json({message: 'Post deleted successfully'});
 }
 
+export const deleteAllMessage = async(req,res) => {
+    await PostMessage.deleteMany({});
+    res.json({message: 'Deleted successfully'});
+}
+

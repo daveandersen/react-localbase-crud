@@ -15,6 +15,9 @@ export default {
     },
     deleteData(id) {
         return http.delete(`/messages/${id}`)
+    },
+    deleteAll(){
+        return http.delete(`/messages/`)
     }
 
 } 

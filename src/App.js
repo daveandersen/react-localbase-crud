@@ -5,7 +5,6 @@ import MessageService from './services/messageService'
 
 let db = new Localbase('db')
 
-
 class App extends React.Component {
   constructor(props) {
     super();
@@ -72,15 +71,20 @@ class App extends React.Component {
 
     const filteredData = data.filter((input, index) => index !== isEditable);
     this.setState({ data: filteredData, isEditable: null }, () => {
-      console.log("Hello")
       db.collection('messages').doc({ id: messageid }).delete()
     });
 
     MessageService.get(messageid).then((oldData) => {
-      console.log("Hai")
       MessageService.deleteData(oldData.data[0]._id)
-    }) 
+    })
   }
+
+  deleteAll = () => {
+    this.setState({data : []})
+    MessageService.deleteAll();
+    db.collection('messages').delete();
+  }
+
 
   render() {
     const { data, isEditable } = this.state;
@@ -112,6 +116,7 @@ class App extends React.Component {
               </li>
             ))}
           </ul>
+          {this.state.data.length > 0 ? <button onClick={this.deleteAll}>Clear</button> :<></>}
         </div>
       </div>
     )
