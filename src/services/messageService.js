@@ -9,6 +9,9 @@ export default {
     },
     createData : data => {
         return http.post("/messages", data)
+    },
+    updateData(id, data) {
+        return http.patch(`/messages/${id}`, data)
     }
 
 } 

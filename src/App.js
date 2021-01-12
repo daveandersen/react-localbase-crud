@@ -26,6 +26,8 @@ class App extends React.Component {
     let check = db.collection('messages').get();
     console.log(check);
 
+    // db.collection('messages').add()
+
     // db.collection('messages').get()
     //   .then((messages) => {
     //     if (messages.length > 0 && Array.isArray(messages)) {
@@ -74,22 +76,21 @@ class App extends React.Component {
     const inputValue = e.target.input.value;
     this.setState(
       (prevState) => ({ data: [...prevState.data, inputValue] }),
-      () => {
+      (prevState) => {
         // window.localStorage.setItem('data', JSON.stringify(this.state.data));
         console.log(this.state.data)
         db.collection('messages').add({
-          //id: Date.now(),
+          id: this.state.data.length-1,
           message: inputValue
         })
       }
     );
     MessageService.createData({
-      id: Date.now(),
-      message: inputValue}
-    );
-
+      id: this.state.data.length,
+      message: inputValue
+    });
     // db.collection('messages').add({
-
+      
     // })
   }
 
@@ -101,18 +102,24 @@ class App extends React.Component {
     e.preventDefault();
     const inputValue = e.target.input.value;
     const { data, isEditable } = this.state;
-    const newData = [...data];
-    newData[isEditable] = inputValue;
-    console.log(isEditable)
-    console.log(typeof (newData))
-    console.log(newData)
-    this.setState({ data: newData }, () => {
+    console.log(messageid)
+
+    data[isEditable].message = inputValue;
+    
+    this.setState({ data: data }, () => {
       // window.localStorage.setItem('data', JSON.stringify(this.state.data));
       db.collection('messages').doc({ id: messageid }).update({
+        id: messageid, 
         message: inputValue
       })
     });
+    MessageService.get(messageid).then((oldData) => {
+      console.log(oldData.data[0]._id);
+      console.log(data[isEditable])
+      MessageService.updateData(oldData.data[0]._id, data[isEditable])
+    })
   }
+
 
   deleteData = messageid => () => {
     const { data, isEditable } = this.state;
@@ -144,7 +151,7 @@ class App extends React.Component {
                 </div>
                 <div style={{ display: `${isEditable !== index ? 'none' : 'block'}` }}>
                   <form onSubmit={(e) => this.updateForm(e, input.id)}>
-                    <input type="text" name="input" defaultValue={input.messages} />
+                    <input type="text" name="input" defaultValue={input.message} />
                     <button type="submit">update</button>
                   </form>
                   <button type='button' onClick={this.deleteData(input.id)}>
