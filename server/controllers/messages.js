@@ -1,7 +1,7 @@
 import PostMessage from '../models/postMessage.js';
 import mongoose from 'mongoose';
 
-export const getPosts = async (req, res) => {
+export const getMessages = async (req, res) => {
     try{
         const postMessages = await PostMessage.find();
 
@@ -11,7 +11,7 @@ export const getPosts = async (req, res) => {
     }
 }
 
-export const getOne = async (req, res) => {
+export const getOneMessage = async (req, res) => {
     const id = req.params.id
 
     try{
@@ -26,7 +26,7 @@ export const getOne = async (req, res) => {
     }
 }
 
-export const createPost = async (req, res) => {
+export const createMessage = async (req, res) => {
     console.log(req.body)
     const newPost = new PostMessage({
         id: req.body.id,
@@ -41,7 +41,7 @@ export const createPost = async (req, res) => {
     }
 }
 
-export const updatePost = async (req, res) => {
+export const updateMessage = async (req, res) => {
     const id = req.params.id;
 
     const updatedPost = await PostMessage.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
@@ -61,7 +61,7 @@ export const updatePost = async (req, res) => {
     res.json(updatedPost);
 }
 
-export const deletePost = async (req, res) => {
+export const deleteMessage = async (req, res) => {
     const { id } = req.params;
     if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).semd('No post with that id');
 

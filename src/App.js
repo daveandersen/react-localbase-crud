@@ -1,7 +1,6 @@
 import React from 'react';
 import './App.css';
 import Localbase from 'localbase';
-import axios from 'axios';
 import MessageService from './services/messageService'
 
 let db = new Localbase('db')
