@@ -12,6 +12,9 @@ export default {
     },
     updateData(id, data) {
         return http.patch(`/messages/${id}`, data)
+    },
+    deleteData(id) {
+        return http.delete(`/messages/${id}`)
     }
 
 } 

@@ -114,21 +114,21 @@ class App extends React.Component {
       })
     });
     MessageService.get(messageid).then((oldData) => {
-      console.log(oldData.data[0]._id);
-      console.log(data[isEditable])
       MessageService.updateData(oldData.data[0]._id, data[isEditable])
     })
   }
 
-
   deleteData = messageid => () => {
     const { data, isEditable } = this.state;
-    const newData = [...data];
-    const filteredData = newData.filter((input, index) => index !== isEditable);
+    const filteredData = data.filter((input, index) => index !== isEditable);
     this.setState({ data: filteredData, isEditable: null }, () => {
       // window.localStorage.setItem('data', JSON.stringify(this.state.data));
       db.collection('messages').doc({ id: messageid }).delete()
     });
+
+    MessageService.get(messageid).then((oldData) => {
+      MessageService.deleteData(oldData.data[0]._id)
+    })
   }
 
   render() {
