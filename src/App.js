@@ -65,30 +65,26 @@ class App extends React.Component {
     // }
   }
 
-  componentDidUpdate(prevProps, prevState, preState) {
-    // console.log(preState);
-    // console.log(prevState)
+  componentDidUpdate(prevProps, prevState) {
 
   }
 
   submitForm = (e) => {
     e.preventDefault();
     const inputValue = e.target.input.value;
-    this.setState(
-      (prevState) => ({ data: [...prevState.data, inputValue] }),
-      (prevState) => {
-        // window.localStorage.setItem('data', JSON.stringify(this.state.data));
-        console.log(this.state.data)
-        db.collection('messages').add({
-          id: this.state.data.length-1,
-          message: inputValue
-        })
-      }
-    );
-    MessageService.createData({
+    const inputData = {
       id: this.state.data.length,
       message: inputValue
-    });
+    }
+    this.setState(
+      (prevState) => ({ data: [...prevState.data, inputData] }),
+      () => {
+        // window.localStorage.setItem('data', JSON.stringify(this.state.data));
+        console.log(this.state.data)
+        db.collection('messages').add(inputData)
+      }
+    );
+    MessageService.createData(inputData);    
     // db.collection('messages').add({
       
     // })
