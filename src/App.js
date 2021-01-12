@@ -6,6 +6,8 @@
 import React from 'react';
 import './App.css';
 import Localbase from 'localbase';
+import axios from 'axios';
+import MessageService from './services/messageService'
 
 let db = new Localbase('db')
 
@@ -24,14 +26,21 @@ class App extends React.Component {
     let check = db.collection('messages').get();
     console.log(check);
 
-    db.collection('messages').get()
-      .then((messages) => {
-        if (messages.length > 0 && Array.isArray(messages)) {
-          this.setState({ data: messages })
-        } else {
-          console.log("Error");
-        }
-      })
+    // db.collection('messages').add()
+
+    // db.collection('messages').get()
+    //   .then((messages) => {
+    //     if (messages.length > 0 && Array.isArray(messages)) {
+    //       this.setState({ data: messages })
+    //     } else {
+    //       console.log("Error");
+    //     }
+    //   })
+    MessageService.getAll().then((response) => {
+      console.log(response)
+      this.setState({data: response.data})
+    })
+    
 
     // db.collection('messages').get()
     // .then((messages) => {
@@ -56,26 +65,29 @@ class App extends React.Component {
     // }
   }
 
-  componentDidUpdate(prevProps, prevState, preState) {
-    console.log(preState);
-    console.log(prevState)
+  componentDidUpdate(prevProps, prevState) {
 
   }
 
   submitForm = (e) => {
     e.preventDefault();
     const inputValue = e.target.input.value;
+    const inputData = {
+      id: this.state.data.length,
+      message: inputValue
+    }
     this.setState(
-      (prevState) => ({ data: [...prevState.data, inputValue] }),
+      (prevState) => ({ data: [...prevState.data, inputData] }),
       () => {
         // window.localStorage.setItem('data', JSON.stringify(this.state.data));
         console.log(this.state.data)
-        db.collection('messages').add({
-          id: Date.now(),
-          messages: inputValue
-        })
+        db.collection('messages').add(inputData)
       }
     );
+    MessageService.createData(inputData);    
+    // db.collection('messages').add({
+      
+    // })
   }
 
   edit = (index) => {
@@ -86,31 +98,38 @@ class App extends React.Component {
     e.preventDefault();
     const inputValue = e.target.input.value;
     const { data, isEditable } = this.state;
-    const newData = [...data];
-    newData[isEditable] = inputValue;
-    console.log(isEditable)
-    console.log(typeof (newData))
-    console.log(newData)
-    this.setState({ data: newData }, () => {
+    console.log(messageid)
+
+    data[isEditable].message = inputValue;
+    
+    this.setState({ data: data }, () => {
       // window.localStorage.setItem('data', JSON.stringify(this.state.data));
       db.collection('messages').doc({ id: messageid }).update({
-        messages: inputValue
+        id: messageid, 
+        message: inputValue
       })
     });
+    MessageService.get(messageid).then((oldData) => {
+      MessageService.updateData(oldData.data[0]._id, data[isEditable])
+    })
   }
 
   deleteData = messageid => () => {
     const { data, isEditable } = this.state;
-    const newData = [...data];
-    const filteredData = newData.filter((input, index) => index !== isEditable);
+    const filteredData = data.filter((input, index) => index !== isEditable);
     this.setState({ data: filteredData, isEditable: null }, () => {
       // window.localStorage.setItem('data', JSON.stringify(this.state.data));
       db.collection('messages').doc({ id: messageid }).delete()
     });
+
+    MessageService.get(messageid).then((oldData) => {
+      MessageService.deleteData(oldData.data[0]._id)
+    })
   }
 
   render() {
     const { data, isEditable } = this.state;
+    console.log(data)
 
     return (
       <div className="app">
@@ -120,15 +139,15 @@ class App extends React.Component {
         </form>
         <div className="data">
           <ul>
-            {data.map((input, index) => (
-              <li key={input.messages + index}>
+            {data.map((input, index) => ( 
+              <li key={input.message + index}>
                 <div>
-                  {input.messages}
+                  {input.message}
                   <button onClick={() => this.edit(index)}>Edit</button>
                 </div>
                 <div style={{ display: `${isEditable !== index ? 'none' : 'block'}` }}>
                   <form onSubmit={(e) => this.updateForm(e, input.id)}>
-                    <input type="text" name="input" defaultValue={input.messages} />
+                    <input type="text" name="input" defaultValue={input.message} />
                     <button type="submit">update</button>
                   </form>
                   <button type='button' onClick={this.deleteData(input.id)}>
