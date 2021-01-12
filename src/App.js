@@ -6,6 +6,8 @@
 import React from 'react';
 import './App.css';
 import Localbase from 'localbase';
+import axios from 'axios';
+import MessageService from './services/messageService'
 
 let db = new Localbase('db')
 
@@ -24,14 +26,22 @@ class App extends React.Component {
     let check = db.collection('messages').get();
     console.log(check);
 
-    db.collection('messages').get()
-      .then((messages) => {
-        if (messages.length > 0 && Array.isArray(messages)) {
-          this.setState({ data: messages })
-        } else {
-          console.log("Error");
-        }
-      })
+    // db.collection('messages').get()
+    //   .then((messages) => {
+    //     if (messages.length > 0 && Array.isArray(messages)) {
+    //       this.setState({ data: messages })
+    //     } else {
+    //       console.log("Error");
+    //     }
+    //   })
+    MessageService.getAll().then((messages) => {
+      if (messages.length > 0 && Array.isArray(messages)) {
+        this.setState({ data: messages })
+      } else {
+        console.log("Error");
+      }
+    })
+    
 
     // db.collection('messages').get()
     // .then((messages) => {
@@ -72,9 +82,14 @@ class App extends React.Component {
         console.log(this.state.data)
         db.collection('messages').add({
           id: Date.now(),
-          messages: inputValue
+          message: inputValue
         })
       }
+    );
+    console.log(this.state)
+    MessageService.createData({
+      id: Date.now(),
+      message: inputValue}
     );
   }
 
