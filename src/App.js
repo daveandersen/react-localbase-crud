@@ -28,7 +28,7 @@ class App extends React.Component {
         messages.data.forEach((message) => {dbIDs = dbIDs + '' + message.id});
         
       })
-    }).finally(async () => {
+    }).finally(() => {
       console.log(dbIDs);
       console.log(localbaseIDs)
       if(dbIDs === localbaseIDs){
@@ -45,10 +45,10 @@ class App extends React.Component {
     
   }
 
-  syncData = () => {
+  syncData = async () => {
     var stateData = [];
     var inputDataArray = [];
-    db.collection('messages').delete()
+    await db.collection('messages').delete()
       .then(async () => {
         await MessageService.getAll().then((messages) => {
           messages.data.forEach((message) => {
@@ -78,17 +78,16 @@ class App extends React.Component {
     e.preventDefault();
     var inputData = {};
     const inputValue = e.target.input.value;
-    MessageService.getAll().then((messages) => {
+    MessageService.getAll().then(async (messages) => {
       inputData = {
         id: messages.data.length,
         message: inputValue
       }
-      MessageService.createData(inputData)
-      if(!this.localbaseDBSync()){
-        console.log("Syncing...")
-        this.syncData();
-      }
-    })
+      await MessageService.createData(inputData)
+      
+    }).then(() =>
+      this.localbaseDBSync()
+    )
     
   }
 
@@ -113,7 +112,7 @@ class App extends React.Component {
     MessageService.get(messageid).then((oldData) => {
       MessageService.updateData(oldData.data[0]._id, data[isEditable])
     })
-
+    this.localbaseDBSync();
   }
 
   deleteData = messageid => () => {
@@ -127,18 +126,14 @@ class App extends React.Component {
     MessageService.get(messageid).then((oldData) => {
       MessageService.deleteData(oldData.data[0]._id)
     })
-
+    this.localbaseDBSync();
   }
 
   deleteAll = () => {
     this.setState({data : []})
     MessageService.deleteAll();
     db.collection('messages').delete();
-
-    if(!this.localbaseDBSync()){
-      console.log("Syncing...")
-      this.syncData();
-    }
+    this.localbaseDBSync();
   }
 
 
