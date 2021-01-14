@@ -15,40 +15,40 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    if(this.localbaseDBSync()){
-      var stateData = [];
-      db.collection('messages').get().then((messages) => {
-        messages.forEach((message) => {stateData.push(message)})
-        this.setState({ data : stateData })
-      })
-    } else {
-      console.log('Syncing.')
-      this.syncData();
-    }
+    this.localbaseDBSync();
   }
       
-  localbaseDBSync = async () => {
+  localbaseDBSync = () => {
     var dbIDs = "";
     var localbaseIDs = "";
 
-    await db.collection('messages').get().then(async (messages) => {
+    db.collection('messages').get().then(async (messages) => {
       messages.forEach((message) => {localbaseIDs = localbaseIDs + '' + message.id})
       await MessageService.getAll().then((messages) => {
         messages.data.forEach((message) => {dbIDs = dbIDs + '' + message.id});
         
       })
-    }).then(async () => {
+    }).finally(async () => {
       console.log(dbIDs);
       console.log(localbaseIDs)
-      return dbIDs === localbaseIDs;
+      if(dbIDs === localbaseIDs){
+        var stateData = [];
+        db.collection('messages').get().then((messages) => {
+          messages.forEach((message) => {stateData.push(message)})
+          this.setState({ data : stateData })
+        })
+      } else {
+        console.log('Syncing.')
+        this.syncData();
+      }
     })
     
   }
 
-  syncData = async () => {
+  syncData = () => {
     var stateData = [];
     var inputDataArray = [];
-    await db.collection('messages').delete()
+    db.collection('messages').delete()
       .then(async () => {
         await MessageService.getAll().then((messages) => {
           messages.data.forEach((message) => {
