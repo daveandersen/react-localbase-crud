@@ -1,7 +1,7 @@
 import PostMessage from '../models/postMessage.js';
 import mongoose from 'mongoose';
 
-export const getMessages = async (req, res) => {
+export const getMessages = async(req, res) => {
     try{
         const postMessages = await PostMessage.find();
 
@@ -27,7 +27,6 @@ export const getOneMessage = async (req, res) => {
 }
 
 export const createMessage = async (req, res) => {
-    console.log(req.body)
     const newPost = new PostMessage({
         id: req.body.id,
         message: req.body.message

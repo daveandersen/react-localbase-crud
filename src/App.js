@@ -15,32 +15,81 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-     db.collection('messages').get()
-      .then((messages) => {
-        if (messages.length > 0 && Array.isArray(messages)) {
-          this.setState({ data: messages })
-        } else {
-          console.log("Empty Data");
-        }
+    if(this.localbaseDBSync()){
+      var stateData = [];
+      db.collection('messages').get().then((messages) => {
+        messages.forEach((message) => {stateData.push(message)})
+        this.setState({ data : stateData })
+      })
+    } else {
+      console.log('Syncing.')
+      this.syncData();
+    }
+  }
+      
+  localbaseDBSync = async () => {
+    var dbIDs = "";
+    var localbaseIDs = "";
+
+    await db.collection('messages').get().then(async (messages) => {
+      messages.forEach((message) => {localbaseIDs = localbaseIDs + '' + message.id})
+      await MessageService.getAll().then((messages) => {
+        messages.data.forEach((message) => {dbIDs = dbIDs + '' + message.id});
+        
+      })
+    }).then(async () => {
+      console.log(dbIDs);
+      console.log(localbaseIDs)
+      return dbIDs === localbaseIDs;
+    })
+    
+  }
+
+  syncData = async () => {
+    var stateData = [];
+    var inputDataArray = [];
+    await db.collection('messages').delete()
+      .then(async () => {
+        await MessageService.getAll().then((messages) => {
+          messages.data.forEach((message) => {
+            const inputData = {
+              id: message.id,
+              message: message.message
+            }
+            inputDataArray.push(inputData)
+        })
+  
+        inputDataArray.forEach((inputData) => {
+          db.collection('messages').add(inputData)
+        })
+      })
+      .then(async () => {
+        await db.collection('messages').get().then((messages) => {
+          messages.forEach((message) => {stateData.push(message)})
+          this.setState({ data : stateData }, () => {
+            console.log('Sync Success.')
+          })
+        })
+      })
       })
   }
 
   submitForm = (e) => {
     e.preventDefault();
+    var inputData = {};
     const inputValue = e.target.input.value;
-    const inputData = {
-      id: this.state.data.length,
-      message: inputValue
-    }
-    this.setState(
-      (prevState) => ({ data: [...prevState.data, inputData] }),
-      () => {
-        console.log(this.state.data)
-        db.collection('messages').add(inputData)
+    MessageService.getAll().then((messages) => {
+      inputData = {
+        id: messages.data.length,
+        message: inputValue
       }
-    );
-
-    MessageService.createData(inputData)
+      MessageService.createData(inputData)
+      if(!this.localbaseDBSync()){
+        console.log("Syncing...")
+        this.syncData();
+      }
+    })
+    
   }
 
   edit = (index) => {
@@ -64,6 +113,7 @@ class App extends React.Component {
     MessageService.get(messageid).then((oldData) => {
       MessageService.updateData(oldData.data[0]._id, data[isEditable])
     })
+
   }
 
   deleteData = messageid => () => {
@@ -77,19 +127,24 @@ class App extends React.Component {
     MessageService.get(messageid).then((oldData) => {
       MessageService.deleteData(oldData.data[0]._id)
     })
+
   }
 
   deleteAll = () => {
     this.setState({data : []})
     MessageService.deleteAll();
     db.collection('messages').delete();
+
+    if(!this.localbaseDBSync()){
+      console.log("Syncing...")
+      this.syncData();
+    }
   }
 
 
   render() {
     const { data, isEditable } = this.state;
-    console.log(data)
-
+    
     return (
       <div className="app">
         <form onSubmit={(e) => this.submitForm(e)}>
