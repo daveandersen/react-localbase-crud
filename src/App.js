@@ -1,9 +1,9 @@
 import React from 'react';
 import './App.css';
 import Localbase from 'localbase';
-import MessageService from './services/messageService'
-import worker from './WebWorkers/worker.js'
-import WebWorker from './WebWorkers/workerSetup'
+import MessageService from './services/messageService';
+import worker from './WebWorkers/worker.js';
+import WebWorker from './WebWorkers/workerSetup';
 
 let db = new Localbase('db')
 
@@ -20,30 +20,32 @@ class App extends React.Component {
     this.localbaseDBSync();
     this.worker = new WebWorker(worker);
   }
-      
+
   localbaseDBSync = () => {
     var dbIDs = "";
     var localbaseIDs = "";
 
     db.collection('messages').get().then(async (messages) => {
-      messages.forEach((message) => {localbaseIDs = localbaseIDs + '' + message.id})
+      messages.forEach((message) => { localbaseIDs = localbaseIDs + '' + message.id })
       await MessageService.getAll().then((messages) => {
-        messages.data.forEach((message) => {dbIDs = dbIDs + '' + message.id});
-        
+        messages.data.forEach((message) => { dbIDs = dbIDs + '' + message.id });
+
       })
     }).finally(() => {
-      if(dbIDs === localbaseIDs){
+      console.log(dbIDs);
+      console.log(localbaseIDs)
+      if (dbIDs === localbaseIDs) {
         var stateData = [];
         db.collection('messages').get().then((messages) => {
-          messages.forEach((message) => {stateData.push(message)})
-          this.setState({ data : stateData })
+          messages.forEach((message) => { stateData.push(message) })
+          this.setState({ data: stateData })
         })
       } else {
         console.log('Syncing.')
         this.syncData();
       }
     })
-    
+
   }
 
   syncData = async () => {
@@ -58,43 +60,46 @@ class App extends React.Component {
               message: message.message
             }
             inputDataArray.push(inputData)
-        })
-  
-        inputDataArray.forEach((inputData) => {
-          db.collection('messages').add(inputData)
-        })
-      })
-      .then(async () => {
-        await db.collection('messages').get().then((messages) => {
-          messages.forEach((message) => {stateData.push(message)})
-          this.setState({ data : stateData }, () => {
-            console.log('Sync Success.')
+          })
+
+          inputDataArray.forEach((inputData) => {
+            db.collection('messages').add(inputData)
           })
         })
-      })
+          .then(async () => {
+            await db.collection('messages').get().then((messages) => {
+              messages.forEach((message) => { stateData.push(message) })
+              this.setState({ data: stateData }, () => {
+                console.log('Sync Success.')
+              })
+            })
+          })
       })
   }
 
   submitForm = (e) => {
     e.preventDefault();
+
+    var inputData = {};
     const inputValue = e.target.input.value;
-    this.worker.postMessage({type: 'Input', value: inputValue})
-    this.worker.addEventListener = e => {
+
+    this.worker.postMessage({ type: 'Input', value: inputValue })
+    this.worker.onmessage = e => {
       console.log(e.data)
     }
+
     MessageService.getAll().then(async (messages) => {
       const inputData = {
         id: messages.data.length,
         message: inputValue
       }
       await MessageService.createData(inputData)
-      
+
     }).then(() =>
       this.localbaseDBSync()
     )
-    
-    }
-    
+
+  }
 
   edit = (index) => {
     this.setState({ isEditable: index });
@@ -107,10 +112,10 @@ class App extends React.Component {
     console.log(messageid)
 
     data[isEditable].message = inputValue;
-    
+
     this.setState({ data: data }, () => {
       db.collection('messages').doc({ id: messageid }).update({
-        id: messageid, 
+        id: messageid,
         message: inputValue
       })
     });
@@ -121,7 +126,7 @@ class App extends React.Component {
   }
 
   deleteData = messageid => () => {
-    const { data, isEditable } = this.state; 
+    const { data, isEditable } = this.state;
 
     const filteredData = data.filter((input, index) => index !== isEditable);
     this.setState({ data: filteredData, isEditable: null }, () => {
@@ -135,7 +140,7 @@ class App extends React.Component {
   }
 
   deleteAll = () => {
-    this.setState({data : []})
+    this.setState({ data: [] })
     MessageService.deleteAll();
     db.collection('messages').delete();
     this.localbaseDBSync();
@@ -144,23 +149,28 @@ class App extends React.Component {
 
   render() {
     const { data, isEditable } = this.state;
-    
+
     return (
-      <div className="app">
+      <div>
         <form onSubmit={(e) => this.submitForm(e)}>
-          <input type="text" name="input" />
+          Username: <input type="text" name="input" />
+          <br></br>
+          Password: <input type="text" name="password"/>
+          <br></br>
+          Description: <input type="text" name="description"/>
+          <br></br>
           <button type="submit">Add</button>
         </form>
-        <div className="data">
+        <div>
           <ul>
-            {data.map((input, index) => ( 
+            {data.map((input, index) => (
               <li key={input.message + index}>
                 <div>
                   {input.message}
                   <button onClick={() => this.edit(index)}>Edit</button>
                 </div>
                 <div style={{ display: `${isEditable !== index ? 'none' : 'block'}` }}>
-                  <form onSubmit={(e) => this.updateForm(e, input.id)}>
+                  <form onSubmit ={(e) => this.updateForm(e, input.id)}>
                     <input type="text" name="input" defaultValue={input.message} />
                     <button type="submit">update</button>
                   </form>
@@ -171,7 +181,15 @@ class App extends React.Component {
               </li>
             ))}
           </ul>
-          {this.state.data.length > 0 ? <button onClick={this.deleteAll}>Clear</button> :<></>}
+          {this.state.data.length > 0 ? <button onClick={this.deleteAll}>Clear</button> : <></>}
+        </div>
+        <br/>
+        <div>
+          <button>Get Username</button>
+          <button>Get Password</button>
+          <button>Get Description</button>
+          <ul>
+          </ul>
         </div>
       </div>
     )
