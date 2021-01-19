@@ -2,6 +2,8 @@ import React from 'react';
 import './App.css';
 import Localbase from 'localbase';
 import MessageService from './services/messageService'
+import worker from './WebWorkers/worker.js'
+import WebWorker from './WebWorkers/workerSetup'
 
 let db = new Localbase('db')
 
@@ -16,6 +18,7 @@ class App extends React.Component {
 
   componentDidMount() {
     this.localbaseDBSync();
+    this.worker = new WebWorker(worker);
   }
       
   localbaseDBSync = () => {
@@ -29,8 +32,6 @@ class App extends React.Component {
         
       })
     }).finally(() => {
-      console.log(dbIDs);
-      console.log(localbaseIDs)
       if(dbIDs === localbaseIDs){
         var stateData = [];
         db.collection('messages').get().then((messages) => {
@@ -76,10 +77,13 @@ class App extends React.Component {
 
   submitForm = (e) => {
     e.preventDefault();
-    var inputData = {};
     const inputValue = e.target.input.value;
+    this.worker.postMessage({type: 'Input', value: inputValue})
+    this.worker.addEventListener = e => {
+      console.log(e.data)
+    }
     MessageService.getAll().then(async (messages) => {
-      inputData = {
+      const inputData = {
         id: messages.data.length,
         message: inputValue
       }
@@ -89,7 +93,8 @@ class App extends React.Component {
       this.localbaseDBSync()
     )
     
-  }
+    }
+    
 
   edit = (index) => {
     this.setState({ isEditable: index });
