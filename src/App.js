@@ -82,7 +82,7 @@ class App extends React.Component {
   submitForm = (e) => {
     e.preventDefault();
 
-    const username = e.target.input.value;
+    const username = e.target.username.value;
     const password = e.target.password.value;
     const description = e.target.description.value;
 
@@ -107,16 +107,23 @@ class App extends React.Component {
 
   updateForm = (e, userid) => {
     e.preventDefault();
-    const inputValue = e.target.input.value;
+    const username = e.target.username.value;
+    const password = e.target.password.value;
+    const description = e.target.description.value;
     const { data, isEditable } = this.state;
     console.log(userid)
 
-    data[isEditable].user = inputValue;
+    data[isEditable].username = username;
+    data[isEditable].password = password;
+    data[isEditable].description = description;
 
     this.setState({ data: data }, () => {
       db.collection('users').doc({ id: userid }).update({
         id: userid,
-        user: inputValue
+        username: username,
+        password: password,
+        description: description
+
       })
     });
     userService.get(userid).then((oldData) => {
@@ -153,7 +160,7 @@ class App extends React.Component {
     return (
       <div>
         <form onSubmit={(e) => this.submitForm(e)}>
-          Username: <input type="text" name="input" />
+          Username: <input type="text" name="username" />
           <br></br>
           Password: <input type="text" name="password"/>
           <br></br>
@@ -171,11 +178,26 @@ class App extends React.Component {
                   Username: 
                   </label>
                   {input.username}
+                  <br/>
+                  <label>
+                    Password:
+                  </label>
+                  {input.password}
+                  <br/>
+                  <label>
+                    Description:
+                  </label>
+                  {input.description}
                   <button onClick={() => this.edit(index)}>Edit</button>
                 </div>
                 <div style={{ display: `${isEditable !== index ? 'none' : 'block'}` }}>
                   <form onSubmit ={(e) => this.updateForm(e, input.id)}>
-                    <input type="text" name="input" defaultValue={input.username} />
+                    <br></br>
+                    Username: <input type="text" name="username" defaultValue={input.username}/>
+                    <br></br>
+                    Password: <input type="text" name="password" defaultValue={input.password}/>
+                    <br></br>
+                    Description: <input type="text" name="description" defaultValue={input.description}/>
                     <button type="submit">update</button>
                   </form>
                   <button type='button' onClick={this.deleteData(input.id)}>
