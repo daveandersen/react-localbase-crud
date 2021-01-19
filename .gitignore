@@ -5,6 +5,7 @@
 /.pnp
 .pnp.js
 debug.log
+.eslintcache
 
 # testing
 /coverage
@@ -18,7 +19,7 @@ debug.log
 .env.development.local
 .env.test.local
 .env.production.local
-.eslintcache
+
 
 npm-debug.log*
 yarn-debug.log*
