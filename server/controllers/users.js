@@ -29,7 +29,9 @@ export const getOneUser = async (req, res) => {
 export const createUser = async (req, res) => {
     const newPost = new PostUser({
         id: req.body.id,
-        User: req.body.User
+        username: req.body.username,
+        password: req.body.password,
+        description: req.body.description
     });
 
     try{

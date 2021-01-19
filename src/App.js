@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import Localbase from 'localbase';
-import MessageService from './services/messageService';
+import userService from './services/userService';
 import worker from './WebWorkers/worker.js';
 import WebWorker from './WebWorkers/workerSetup';
 
@@ -25,10 +25,10 @@ class App extends React.Component {
     var dbIDs = "";
     var localbaseIDs = "";
 
-    db.collection('messages').get().then(async (messages) => {
-      messages.forEach((message) => { localbaseIDs = localbaseIDs + '' + message.id })
-      await MessageService.getAll().then((messages) => {
-        messages.data.forEach((message) => { dbIDs = dbIDs + '' + message.id });
+    db.collection('users').get().then(async (users) => {
+      users.forEach((user) => { localbaseIDs = localbaseIDs + '' + user.id })
+      await userService.getAll().then((users) => {
+        users.data.forEach((user) => { dbIDs = dbIDs + '' + user.id });
 
       })
     }).finally(() => {
@@ -36,8 +36,8 @@ class App extends React.Component {
       console.log(localbaseIDs)
       if (dbIDs === localbaseIDs) {
         var stateData = [];
-        db.collection('messages').get().then((messages) => {
-          messages.forEach((message) => { stateData.push(message) })
+        db.collection('users').get().then((users) => {
+          users.forEach((user) => { stateData.push(user) })
           this.setState({ data: stateData })
         })
       } else {
@@ -51,24 +51,26 @@ class App extends React.Component {
   syncData = async () => {
     var stateData = [];
     var inputDataArray = [];
-    await db.collection('messages').delete()
+    await db.collection('users').delete()
       .then(async () => {
-        await MessageService.getAll().then((messages) => {
-          messages.data.forEach((message) => {
+        await userService.getAll().then((users) => {
+          users.data.forEach((user) => {
             const inputData = {
-              id: message.id,
-              message: message.message
+              id: user.id,
+              username: user.username,
+              password: user.password,
+              description: user.description
             }
             inputDataArray.push(inputData)
           })
 
           inputDataArray.forEach((inputData) => {
-            db.collection('messages').add(inputData)
+            db.collection('users').add(inputData)
           })
         })
           .then(async () => {
-            await db.collection('messages').get().then((messages) => {
-              messages.forEach((message) => { stateData.push(message) })
+            await db.collection('users').get().then((users) => {
+              users.forEach((user) => { stateData.push(user) })
               this.setState({ data: stateData }, () => {
                 console.log('Sync Success.')
               })
@@ -80,20 +82,18 @@ class App extends React.Component {
   submitForm = (e) => {
     e.preventDefault();
 
-    var inputData = {};
-    const inputValue = e.target.input.value;
+    const username = e.target.input.value;
+    const password = e.target.password.value;
+    const description = e.target.description.value;
 
-    this.worker.postMessage({ type: 'Input', value: inputValue })
-    this.worker.onmessage = e => {
-      console.log(e.data)
-    }
-
-    MessageService.getAll().then(async (messages) => {
+    userService.getAll().then(async (users) => {
       const inputData = {
-        id: messages.data.length,
-        message: inputValue
+        id: users.data.length,
+        username: username,
+        password: password,
+        description: description
       }
-      await MessageService.createData(inputData)
+      await userService.createData(inputData)
 
     }).then(() =>
       this.localbaseDBSync()
@@ -105,44 +105,44 @@ class App extends React.Component {
     this.setState({ isEditable: index });
   }
 
-  updateForm = (e, messageid) => {
+  updateForm = (e, userid) => {
     e.preventDefault();
     const inputValue = e.target.input.value;
     const { data, isEditable } = this.state;
-    console.log(messageid)
+    console.log(userid)
 
-    data[isEditable].message = inputValue;
+    data[isEditable].user = inputValue;
 
     this.setState({ data: data }, () => {
-      db.collection('messages').doc({ id: messageid }).update({
-        id: messageid,
-        message: inputValue
+      db.collection('users').doc({ id: userid }).update({
+        id: userid,
+        user: inputValue
       })
     });
-    MessageService.get(messageid).then((oldData) => {
-      MessageService.updateData(oldData.data[0]._id, data[isEditable])
+    userService.get(userid).then((oldData) => {
+      userService.updateData(oldData.data[0]._id, data[isEditable])
     })
     this.localbaseDBSync();
   }
 
-  deleteData = messageid => () => {
+  deleteData = userid => () => {
     const { data, isEditable } = this.state;
 
     const filteredData = data.filter((input, index) => index !== isEditable);
     this.setState({ data: filteredData, isEditable: null }, () => {
-      db.collection('messages').doc({ id: messageid }).delete()
+      db.collection('users').doc({ id: userid }).delete()
     });
 
-    MessageService.get(messageid).then((oldData) => {
-      MessageService.deleteData(oldData.data[0]._id)
+    userService.get(userid).then((oldData) => {
+      userService.deleteData(oldData.data[0]._id)
     })
     this.localbaseDBSync();
   }
 
   deleteAll = () => {
     this.setState({ data: [] })
-    MessageService.deleteAll();
-    db.collection('messages').delete();
+    userService.deleteAll();
+    db.collection('users').delete();
     this.localbaseDBSync();
   }
 
@@ -164,14 +164,18 @@ class App extends React.Component {
         <div>
           <ul>
             {data.map((input, index) => (
-              <li key={input.message + index}>
+
+              <li key={input.username + index}>
                 <div>
-                  {input.message}
+                  <label>
+                  Username: 
+                  </label>
+                  {input.username}
                   <button onClick={() => this.edit(index)}>Edit</button>
                 </div>
                 <div style={{ display: `${isEditable !== index ? 'none' : 'block'}` }}>
                   <form onSubmit ={(e) => this.updateForm(e, input.id)}>
-                    <input type="text" name="input" defaultValue={input.message} />
+                    <input type="text" name="input" defaultValue={input.username} />
                     <button type="submit">update</button>
                   </form>
                   <button type='button' onClick={this.deleteData(input.id)}>
