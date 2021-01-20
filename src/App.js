@@ -59,7 +59,7 @@ class App extends React.Component {
               id: user.id,
               username: user.username,
               password: user.password,
-              description: user.description
+              carID: user.carID
             }
             inputDataArray.push(inputData)
           })
@@ -84,14 +84,14 @@ class App extends React.Component {
 
     const username = e.target.username.value;
     const password = e.target.password.value;
-    const description = e.target.description.value;
+    const carID = e.target.carID.value;
 
     userService.getAll().then(async (users) => {
       const inputData = {
         id: users.data.length,
         username: username,
         password: password,
-        description: description
+        carID: carID
       }
       await userService.createData(inputData)
 
@@ -109,20 +109,20 @@ class App extends React.Component {
     e.preventDefault();
     const username = e.target.username.value;
     const password = e.target.password.value;
-    const description = e.target.description.value;
+    const carID = e.target.carID.value;
     const { data, isEditable } = this.state;
     console.log(userid)
 
     data[isEditable].username = username;
     data[isEditable].password = password;
-    data[isEditable].description = description;
+    data[isEditable].carID = carID;
 
     this.setState({ data: data }, () => {
       db.collection('users').doc({ id: userid }).update({
         id: userid,
         username: username,
         password: password,
-        description: description
+        carID: carID
 
       })
     });
@@ -164,7 +164,7 @@ class App extends React.Component {
           <br></br>
           Password: <input type="text" name="password" />
           <br></br>
-          Description: <input type="text" name="description" />
+          carID: <input type="text" name="carID" />
           <br></br>
           <button type="submit">Add</button>
         </form>
@@ -174,7 +174,7 @@ class App extends React.Component {
             <tr>
               <th>Username</th>
               <th>Password</th>
-              <th>Description</th>
+              <th>carID</th>
               <th>Edit</th>
               <th>Delete</th>
             </tr>
@@ -182,7 +182,7 @@ class App extends React.Component {
               <tr>
                 <th>{input.username}</th>
                 <th>{input.password}</th>
-                <th>{input.description}</th>
+                <th>{input.carID}</th>
                 <th>
                   <div>
                     <button onClick={() => this.edit(index)}>Edit</button>
@@ -194,7 +194,7 @@ class App extends React.Component {
                       <br></br>
                     Password: <input type="text" name="password" defaultValue={input.password} />
                       <br></br>
-                    Description: <input type="text" name="description" defaultValue={input.description} />
+                    carID: <input type="text" name="carID" defaultValue={input.carID} />
                       <button type="submit">update</button>
                     </form>
                   </div>
@@ -213,7 +213,7 @@ class App extends React.Component {
         <div>
           <button>Get Username</button>
           <button>Get Password</button>
-          <button>Get Description</button>
+          <button>Get carID</button>
           <ul>
           </ul>
         </div>
