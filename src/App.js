@@ -162,54 +162,54 @@ class App extends React.Component {
         <form onSubmit={(e) => this.submitForm(e)}>
           Username: <input type="text" name="username" />
           <br></br>
-          Password: <input type="text" name="password"/>
+          Password: <input type="text" name="password" />
           <br></br>
-          Description: <input type="text" name="description"/>
+          Description: <input type="text" name="description" />
           <br></br>
           <button type="submit">Add</button>
         </form>
         <div>
-          <ul>
+          <br/>
+          <table>
+            <tr>
+              <th>Username</th>
+              <th>Password</th>
+              <th>Description</th>
+              <th>Edit</th>
+              <th>Delete</th>
+            </tr>
             {data.map((input, index) => (
-
-              <li key={input.username + index}>
-                <div>
-                  <label>
-                  Username: 
-                  </label>
-                  {input.username}
-                  <br/>
-                  <label>
-                    Password:
-                  </label>
-                  {input.password}
-                  <br/>
-                  <label>
-                    Description:
-                  </label>
-                  {input.description}
-                  <button onClick={() => this.edit(index)}>Edit</button>
-                </div>
-                <div style={{ display: `${isEditable !== index ? 'none' : 'block'}` }}>
-                  <form onSubmit ={(e) => this.updateForm(e, input.id)}>
-                    <br></br>
-                    Username: <input type="text" name="username" defaultValue={input.username}/>
-                    <br></br>
-                    Password: <input type="text" name="password" defaultValue={input.password}/>
-                    <br></br>
-                    Description: <input type="text" name="description" defaultValue={input.description}/>
-                    <button type="submit">update</button>
-                  </form>
+              <tr>
+                <th>{input.username}</th>
+                <th>{input.password}</th>
+                <th>{input.description}</th>
+                <th>
+                  <div>
+                    <button onClick={() => this.edit(index)}>Edit</button>
+                  </div>
+                  <div style={{ display: `${isEditable !== index ? 'none' : 'block'}` }}>
+                    <form onSubmit={(e) => this.updateForm(e, input.id)}>
+                      <br></br>
+                    Username: <input type="text" name="username" defaultValue={input.username} />
+                      <br></br>
+                    Password: <input type="text" name="password" defaultValue={input.password} />
+                      <br></br>
+                    Description: <input type="text" name="description" defaultValue={input.description} />
+                      <button type="submit">update</button>
+                    </form>
+                  </div>
+                </th>
+                <th>
                   <button type='button' onClick={this.deleteData(input.id)}>
                     Delete
                   </button>
-                </div>
-              </li>
+                </th>
+              </tr>
             ))}
-          </ul>
+          </table>
           {this.state.data.length > 0 ? <button onClick={this.deleteAll}>Clear</button> : <></>}
         </div>
-        <br/>
+        <br />
         <div>
           <button>Get Username</button>
           <button>Get Password</button>
