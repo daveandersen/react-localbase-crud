@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import users from './routes/users.js'
+import cars from './routes/cars.js'
 
 
 const app = express();
@@ -12,6 +13,7 @@ app.use(bodyParser.urlencoded({ limit: "30mb", extended: true}))
 app.use(cors());
 
 app.use('/users', users)
+app.use('/cars', cars)
 
 app.use(bodyParser.json())
 

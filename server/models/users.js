@@ -4,7 +4,7 @@ const userSchema = mongoose.Schema({
     id: Number,
     username: String,
     password: String,
-    description: String,
+    carID: String,
 });
 
 const Users = mongoose.model('Users', userSchema);

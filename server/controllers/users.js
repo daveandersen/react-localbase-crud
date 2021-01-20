@@ -1,11 +1,11 @@
-import PostUser from '../models/users.js';
+import User from '../models/users.js';
 import mongoose from 'mongoose';
 
 export const getUsers = async(req, res) => {
     try{
-        const postUsers = await PostUser.find();
+        const users = await User.find();
 
-        res.status(200).json(postUsers);
+        res.status(200).json(users);
     } catch (error) {
         res.status(404).json({User: error.User});
     }
@@ -15,28 +15,28 @@ export const getOneUser = async (req, res) => {
     const id = req.params.id
 
     try{
-        const postUser = await PostUser.find({id: id}, function(err,obj) {
+        const user = await User.find({id: id}, function(err,obj) {
             //console.log(obj)
             if(err) console.log(err)
         } )
 
-        res.status(200).json(postUser);
+        res.status(200).json(user);
     } catch ( error ) {
         res.status(404).json({User: error.User});
     }
 }
 
 export const createUser = async (req, res) => {
-    const newPost = new PostUser({
+    const newUser = new User({
         id: req.body.id,
         username: req.body.username,
         password: req.body.password,
-        description: req.body.description
+        carID: req.body.carID
     });
 
     try{
-        await newPost.save();
-        res.status(201).json(newPost);
+        await newUser.save();
+        res.status(201).json(newUser);
     } catch (error) {
         res.status(409).json({User: error.User});
     }
@@ -45,7 +45,7 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
     const id = req.params.id;
 
-    const updatedPost = await PostUser.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+    const updatedUser = await User.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
     .then(data => {
         if(!data) {
             res.status(404).send({
@@ -59,20 +59,20 @@ export const updateUser = async (req, res) => {
         })
     });
 
-    res.json(updatedPost);
+    res.json(updatedUser);
 }
 
 export const deleteUser = async (req, res) => {
     const { id } = req.params;
-    if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).semd('No post with that id');
+    if(!mongoose.Types.ObjectId.isValid(id)) return res.status(404).semd('No  with that id');
 
-    await PostUser.findByIdAndRemove(id);
+    await User.findByIdAndRemove(id);
 
-    res.json({User: 'Post deleted successfully'});
+    res.json({User: ' deleted successfully'});
 }
 
 export const deleteAllUser = async(req,res) => {
-    await PostUser.deleteMany({});
+    await User.deleteMany({});
     res.json({User: 'Deleted successfully'});
 }
 
