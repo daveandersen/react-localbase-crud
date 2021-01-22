@@ -1,11 +1,13 @@
 import React from 'react';
 import './App.css';
-import Localbase from 'localbase';
-import userService from './services/userService';
+// import Localbase from 'localbase';
+// import userService from './services/userService';
 import worker from './WebWorkers/worker.js';
 import WebWorker from './WebWorkers/workerSetup';
 
-let db = new Localbase('db')
+// let db = new Localbase('db')
+// import worker_script from './WebWorkers/worker.js';
+var myWorker = new WebWorker(worker);
 
 class App extends React.Component {
   constructor(props) {
@@ -16,68 +18,98 @@ class App extends React.Component {
     };
   }
 
-  componentDidMount() {
-    this.localbaseDBSync();
-    this.worker = new WebWorker(worker);
+  componentWillMount() {
+    // this.localbaseDBSync();
+    myWorker.onmessage = ($event) => {
+      console.log("Client Username", $event.data)
+    };
+
+    this.createTable("db", 3, "users")
   }
 
-  localbaseDBSync = () => {
-    var dbIDs = "";
-    var localbaseIDs = "";
+  createTable(dbName, dbversion, tableName) {
+    var request = indexedDB.open(dbName, dbversion);
+    request.onupgradeneeded = function (e) {
+      var database = e.target.result;
+      var objectStore = database.createObjectStore(tableName);
+      console.log("Object Store Created");
+    };
+    request.onsuccess = function (e) {
+      var database = e.target.result;
 
-    db.collection('users').get().then(async (users) => {
-      users.forEach((user) => { localbaseIDs = localbaseIDs + '' + user.id })
-      await userService.getAll().then((users) => {
-        users.data.forEach((user) => { dbIDs = dbIDs + '' + user.id });
+      //code to verify that the table was created    
+      database.objectStoreNames.contains("storeName");
 
-      })
-    }).finally(() => {
-      console.log(dbIDs);
-      console.log(localbaseIDs)
-      if (dbIDs === localbaseIDs) {
-        var stateData = [];
-        db.collection('users').get().then((users) => {
-          users.forEach((user) => { stateData.push(user) })
-          this.setState({ data: stateData })
-        })
-      } else {
-        console.log('Syncing.')
-        this.syncData();
-      }
-    })
-
+      database.close();
+    }
+    request.onerror = function (e) {
+      console.error(e.target.error.message);
+    }
   }
 
-  syncData = async () => {
-    var stateData = [];
-    var inputDataArray = [];
-    await db.collection('users').delete()
-      .then(async () => {
-        await userService.getAll().then((users) => {
-          users.data.forEach((user) => {
-            const inputData = {
-              id: user.id,
-              username: user.username,
-              password: user.password,
-              carID: user.carID
-            }
-            inputDataArray.push(inputData)
-          })
+  getUsername = async () => {
+    console.log("Get Username Clicked")
 
-          inputDataArray.forEach((inputData) => {
-            db.collection('users').add(inputData)
-          })
-        })
-          .then(async () => {
-            await db.collection('users').get().then((users) => {
-              users.forEach((user) => { stateData.push(user) })
-              this.setState({ data: stateData }, () => {
-                console.log('Sync Success.')
-              })
-            })
-          })
-      })
+    myWorker.postMessage({ type: "Get Username" });
   }
+
+  // localbaseDBSync = () => {
+  //   var dbIDs = "";
+  //   var localbaseIDs = "";
+
+  //   db.collection('users').get().then(async (users) => {
+  //     users.forEach((user) => { localbaseIDs = localbaseIDs + '' + user.id })
+  //     await userService.getAll().then((users) => {
+  //       users.data.forEach((user) => { dbIDs = dbIDs + '' + user.id });
+
+  //     })
+  //   }).finally(() => {
+  //     console.log(dbIDs);
+  //     console.log(localbaseIDs)
+  //     if (dbIDs === localbaseIDs) {
+  //       var stateData = [];
+  //       db.collection('users').get().then((users) => {
+  //         users.forEach((user) => { stateData.push(user) })
+  //         this.setState({ data: stateData })
+  //       })
+  //     } else {
+  //       console.log('Syncing.')
+  //       this.syncData();
+  //     }
+  //   })
+
+  // }
+
+  // syncData = async () => {
+  //   var stateData = [];
+  //   var inputDataArray = [];
+  //   await db.collection('users').delete()
+  //     .then(async () => {
+  //       await userService.getAll().then((users) => {
+  //         users.data.forEach((user) => {
+  //           const inputData = {
+  //             id: user.id,
+  //             username: user.username,
+  //             password: user.password,
+  //             carID: user.carID
+  //           }
+  //           inputDataArray.push(inputData)
+  //         })
+
+  //         inputDataArray.forEach((inputData) => {
+  //           db.collection('users').add(inputData)
+  //         })
+  //       })
+  //         .then(async () => {
+  //           await db.collection('users').get().then((users) => {
+  //             users.forEach((user) => { stateData.push(user) })
+  //             this.setState({ data: stateData }, () => {
+  //               console.log('Sync Success.')
+  //             })
+  //           })
+  //         })
+  //     })
+  // }
 
   submitForm = (e) => {
     e.preventDefault();
@@ -86,18 +118,18 @@ class App extends React.Component {
     const password = e.target.password.value;
     const carID = e.target.carID.value;
 
-    userService.getAll().then(async (users) => {
-      const inputData = {
-        id: users.data.length,
-        username: username,
-        password: password,
-        carID: carID
-      }
-      await userService.createData(inputData)
+    // userService.getAll().then(async (users) => {
+    //   const inputData = {
+    //     id: users.data.length,
+    //     username: username,
+    //     password: password,
+    //     carID: carID
+    //   }
+    //   await userService.createData(inputData)
 
-    }).then(() =>
-      this.localbaseDBSync()
-    )
+    // }).then(() =>
+    //   this.localbaseDBSync()
+    // )
 
   }
 
@@ -117,42 +149,41 @@ class App extends React.Component {
     data[isEditable].password = password;
     data[isEditable].carID = carID;
 
-    this.setState({ data: data }, () => {
-      db.collection('users').doc({ id: userid }).update({
-        id: userid,
-        username: username,
-        password: password,
-        carID: carID
+    // this.setState({ data: data }, () => {
+    //   db.collection('users').doc({ id: userid }).update({
+    //     id: userid,
+    //     username: username,
+    //     password: password,
+    //     carID: carID
 
-      })
-    });
-    userService.get(userid).then((oldData) => {
-      userService.updateData(oldData.data[0]._id, data[isEditable])
-    })
-    this.localbaseDBSync();
+    //   })
+    // });
+    // userService.get(userid).then((oldData) => {
+    //   userService.updateData(oldData.data[0]._id, data[isEditable])
+    // })
+    // this.localbaseDBSync();
   }
 
   deleteData = userid => () => {
     const { data, isEditable } = this.state;
 
     const filteredData = data.filter((input, index) => index !== isEditable);
-    this.setState({ data: filteredData, isEditable: null }, () => {
-      db.collection('users').doc({ id: userid }).delete()
-    });
+    // this.setState({ data: filteredData, isEditable: null }, () => {
+    //   db.collection('users').doc({ id: userid }).delete()
+    // });
 
-    userService.get(userid).then((oldData) => {
-      userService.deleteData(oldData.data[0]._id)
-    })
-    this.localbaseDBSync();
+    // userService.get(userid).then((oldData) => {
+    //   userService.deleteData(oldData.data[0]._id)
+    // })
+    // this.localbaseDBSync();
   }
 
   deleteAll = () => {
     this.setState({ data: [] })
-    userService.deleteAll();
-    db.collection('users').delete();
-    this.localbaseDBSync();
+    // userService.deleteAll();
+    // db.collection('users').delete();
+    // this.localbaseDBSync();
   }
-
 
   render() {
     const { data, isEditable } = this.state;
@@ -169,7 +200,7 @@ class App extends React.Component {
           <button type="submit">Add</button>
         </form>
         <div>
-          <br/>
+          <br />
           <table>
             <tr>
               <th>Username</th>
@@ -211,7 +242,7 @@ class App extends React.Component {
         </div>
         <br />
         <div>
-          <button>Get Username</button>
+          <button onClick={this.getUsername}>Get Username</button>
           <button>Get Password</button>
           <button>Get carID</button>
           <ul>
