@@ -6,6 +6,7 @@ import worker from './WebWorkers/worker.js';
 import WebWorker from './WebWorkers/workerSetup';
 
 let db = new Localbase('db')
+var myWorker = new WebWorker(worker);
 
 class App extends React.Component {
   constructor(props) {
@@ -13,12 +14,14 @@ class App extends React.Component {
     this.state = {
       data: [],
       isEditable: null,
+      username: [],
+      password: [],
+      carID: []
     };
   }
 
   componentDidMount() {
     this.localbaseDBSync();
-    this.worker = new WebWorker(worker);
   }
 
   localbaseDBSync = () => {
@@ -111,7 +114,7 @@ class App extends React.Component {
     const password = e.target.password.value;
     const carID = e.target.carID.value;
     const { data, isEditable } = this.state;
-    console.log(userid)
+    console.log(userid);
 
     data[isEditable].username = username;
     data[isEditable].password = password;
@@ -153,9 +156,48 @@ class App extends React.Component {
     this.localbaseDBSync();
   }
 
+  getUsername = (e) => {
+    e.preventDefault();
+    var usernameArray = [];
+    myWorker.postMessage({type: "Get Username"})
+    myWorker.onmessage = ($event) => {
+      console.log("Username: ", $event.data.username);
+      usernameArray.push($event.data)
+      console.log(usernameArray)
+      this.setState({username: usernameArray})
+      console.log(this.state.username)
+    }
+  }
+
+  getPassword = (e) => {
+    e.preventDefault();
+    var passwordArray = [];
+    myWorker.postMessage({type: "Get Password"})
+    myWorker.onmessage = ($event) => {
+      console.log("Password: ", $event.data.password);
+      passwordArray.push($event.data)
+      console.log(passwordArray)
+      this.setState({password: passwordArray})
+      console.log(this.state.password)
+    }
+  }
+
+  getCarID = (e) => {
+    e.preventDefault();
+    var carIDArray = [];
+    myWorker.postMessage({type: "Get CarID"})
+    myWorker.onmessage = ($event) => {
+      console.log("CarID: ", $event.data.carID);
+      carIDArray.push($event.data)
+      console.log(carIDArray)
+      this.setState({carID: carIDArray})
+      console.log(this.state.carID)
+    }
+  }
+
 
   render() {
-    const { data, isEditable } = this.state;
+    const { data, isEditable, username, password, carID} = this.state;
 
     return (
       <div>
@@ -211,11 +253,47 @@ class App extends React.Component {
         </div>
         <br />
         <div>
-          <button>Get Username</button>
-          <button>Get Password</button>
-          <button>Get carID</button>
-          <ul>
-          </ul>
+          <button onClick = {this.getUsername}>Get Username</button>
+          <button onClick = {this.getPassword}>Get Password</button>
+          <button onClick = {this.getCarID}>Get carID</button>
+          <table>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+            </tr>
+            {username.map((user, index) => (
+              <tr>
+                <th>{user.id}</th>
+                <th>{user.username}</th>
+              </tr>
+            ))}
+          </table>
+          <br/>
+          <table>
+            <tr>
+              <th>ID</th>
+              <th>Password</th>
+            </tr>
+            {password.map((user, index) => (
+              <tr>
+                <th>{user.id}</th>
+                <th>{user.password}</th>
+              </tr>
+            ))}
+          </table>
+          <br/>
+          <table>
+            <tr>
+              <th>ID</th>
+              <th>CarID</th>
+            </tr>
+            {carID.map((user, index) => (
+              <tr>
+                <th>{user.id}</th>
+                <th>{user.carID}</th>
+              </tr>
+            ))}
+          </table>
         </div>
       </div>
     )
