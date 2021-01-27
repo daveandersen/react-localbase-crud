@@ -294,6 +294,7 @@ class App extends React.Component {
               </tr>
             ))}
           </table>
+          <br/>
         </div>
       </div>
     )

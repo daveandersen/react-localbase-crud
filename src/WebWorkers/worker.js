@@ -6,18 +6,12 @@ const worker = () => {
         console.log(request)
         switch (e.data.type) {
             case "Get Username":
-                // console.log(e.data.value)
-                // self.postMessage(e.data.value)
-
                 request.onsuccess = async function (e) {
                     db = request.result;
-                    // console.log(db);
 
                     var transaction = db.transaction(["users"], "readwrite");
-                    // Do something when all the data is added to the database.
                     transaction.oncomplete = function (event) {
                         console.log("All done!");
-                        // console.log(transaction)
                     };
 
                     transaction.onerror = function (event) {
@@ -34,42 +28,29 @@ const worker = () => {
 
                     cursorRequest.onsuccess = function (event) {
                         var cursor = event.target.result;
-
+                        
                         if (cursor) {
                             var value = cursor.value.username;
-                            var value1 = cursor.value
-                            console.log('Username:', value1.username);
-                            postMessage(value1);
+                            console.log('Username:', value);
+                            postMessage({
+                                id: cursor.value.id,
+                                username: cursor.value.username
+                            });
                             cursor.continue();
                         } else {
                             console.log('Finished iterating');
                         }
                     }
-
-                    // var request2 = objectStore.add({
-                    //     id: 2,
-                    //     name: 'ujjwal'
-                    // }, 5);
-                    // var request2 = objectStore.getAll();
-                    // request2.onsuccess = function (event) {
-                    //     console.log(event.target.result)
-                    //     // event.target.result === customer.ssn;
-                    // };
-
-                    //code to verify that the table was created  
                 };
                 break;
             
             case "Get Password":
                 request.onsuccess = async function (e) {
                     db = request.result;
-                    // console.log(db);
 
                     var transaction = db.transaction(["users"], "readwrite");
-                    // Do something when all the data is added to the database.
                     transaction.oncomplete = function (event) {
                         console.log("All done!");
-                        // console.log(transaction)
                     };
 
                     transaction.onerror = function (event) {
@@ -89,39 +70,26 @@ const worker = () => {
 
                         if (cursor) {
                             var value = cursor.value.password;
-                            var value1 = cursor.value
                             console.log('Password:', value);
-                            postMessage(value1);
+                            postMessage({
+                                id: cursor.value.id,
+                                password: cursor.value.password
+                            });
                             cursor.continue();
                         } else {
                             console.log('Finished iterating');
                         }
                     }
-
-                    // var request2 = objectStore.add({
-                    //     id: 2,
-                    //     name: 'ujjwal'
-                    // }, 5);
-                    // var request2 = objectStore.getAll();
-                    // request2.onsuccess = function (event) {
-                    //     console.log(event.target.result)
-                    //     // event.target.result === customer.ssn;
-                    // };
-
-                    //code to verify that the table was created  
                 };
                 break;
 
             case "Get CarID":
                 request.onsuccess = async function (e) {
                     db = request.result;
-                    // console.log(db);
-
+                    
                     var transaction = db.transaction(["users"], "readwrite");
-                    // Do something when all the data is added to the database.
                     transaction.oncomplete = function (event) {
                         console.log("All done!");
-                        // console.log(transaction)
                     };
 
                     transaction.onerror = function (event) {
@@ -141,26 +109,16 @@ const worker = () => {
 
                         if (cursor) {
                             var value = cursor.value.carID;
-                            var value1 = cursor.value;
                             console.log('Car ID:', value);
-                            postMessage(value1);
+                            postMessage({
+                                id: cursor.value.id,
+                                carID: cursor.value.carID
+                            });
                             cursor.continue();
                         } else {
                             console.log('Finished iterating');
                         }
                     }
-
-                    // var request2 = objectStore.add({
-                    //     id: 2,
-                    //     name: 'ujjwal'
-                    // }, 5);
-                    // var request2 = objectStore.getAll();
-                    // request2.onsuccess = function (event) {
-                    //     console.log(event.target.result)
-                    //     // event.target.result === customer.ssn;
-                    // };
-
-                    //code to verify that the table was created  
                 };
                 break;
 
