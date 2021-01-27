@@ -27,59 +27,57 @@ class App extends React.Component {
   localbaseDBSync = () => {
     var dbIDs = "";
     var localbaseIDs = "";
-
-    db.collection('users').get().then(async (users) => {
+    
+    db.collection('users').get().then((users) => {
       users.forEach((user) => { localbaseIDs = localbaseIDs + '' + user.id })
-      await userService.getAll().then((users) => {
+      myWorker.postMessage({type: "Get all users"});
+      myWorker.onmessage = (users) => {
         users.data.forEach((user) => { dbIDs = dbIDs + '' + user.id });
-
-      })
-    }).finally(() => {
-      console.log(dbIDs);
-      console.log(localbaseIDs)
-      if (dbIDs === localbaseIDs) {
-        var stateData = [];
-        db.collection('users').get().then((users) => {
-          users.forEach((user) => { stateData.push(user) })
-          this.setState({ data: stateData })
-        })
-      } else {
-        console.log('Syncing.')
-        this.syncData();
+        console.log(dbIDs);
+        console.log(localbaseIDs)
+        if (dbIDs === localbaseIDs) {
+          var stateData = [];
+          db.collection('users').get().then((users) => {
+            users.forEach((user) => { stateData.push(user) })
+            this.setState({ data: stateData })
+          })
+        } else {
+          console.log('Syncing.')
+          this.syncData();
+        }
       }
+      
     })
+    
 
   }
 
-  syncData = async () => {
-    var stateData = [];
-    var inputDataArray = [];
-    await db.collection('users').delete()
-      .then(async () => {
-        await userService.getAll().then((users) => {
-          users.data.forEach((user) => {
-            const inputData = {
-              id: user.id,
-              username: user.username,
-              password: user.password,
-              carID: user.carID
-            }
-            inputDataArray.push(inputData)
-          })
+  syncData = () => {
+    myWorker.postMessage({type: "Get all users"});
+    myWorker.onmessage = (users) => {
+      db.collection('users').delete();
+      console.log("Localbase deleted")
 
-          inputDataArray.forEach((inputData) => {
-            db.collection('users').add(inputData)
-          })
-        })
-          .then(async () => {
-            await db.collection('users').get().then((users) => {
-              users.forEach((user) => { stateData.push(user) })
-              this.setState({ data: stateData }, () => {
-                console.log('Sync Success.')
-              })
-            })
-          })
+      users.data.forEach((user) => {
+        const inputData = {
+          id: user.id,
+          username: user.username,
+          password: user.password,
+          carID: user.carID
+        }
+        db.collection('users').add(inputData)
+        console.log('Inputted to localbase: ' , inputData) 
+        
       })
+    } 
+    var stateData = [];
+    db.collection('users').get().then((users) => {
+      users.forEach((user) => { stateData.push(user) })
+      console.log(stateData)
+      this.setState({ data: stateData })
+    })
+    
+    
   }
 
   submitForm = (e) => {
@@ -87,20 +85,28 @@ class App extends React.Component {
 
     const username = e.target.username.value;
     const password = e.target.password.value;
-    const carID = e.target.carID.value;
+    const carID = e.target.carID.value; 
 
-    userService.getAll().then(async (users) => {
-      const inputData = {
-        id: users.data.length,
-        username: username,
-        password: password,
-        carID: carID
+    myWorker.postMessage({type: "Input User", username: username, password: password, carID: carID})
+    myWorker.onmessage = (e) => { 
+      console.log(e.data);
+      if(e.data === 'Success'){
+        this.localbaseDBSync();
       }
-      await userService.createData(inputData)
+    } 
+    
+    // userService.getAll().then(async (users) => {
+    //   const inputData = {
+    //     id: users.data.length,
+    //     username: username,
+    //     password: password,
+    //     carID: carID
+    //   }
+    //   await userService.createData(inputData)
 
-    }).then(() =>
-      this.localbaseDBSync()
-    )
+    // }).then(() =>
+    //   this.localbaseDBSync()
+    // )
 
   }
 

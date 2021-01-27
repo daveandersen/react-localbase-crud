@@ -5,6 +5,52 @@ const worker = () => {
 
         console.log(request)
         switch (e.data.type) {
+            case "Input User":
+                
+                var users = {}
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', "http://localhost:5000/users", true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    users = JSON.parse(xhr.responseText);
+                    let data = {}
+                    data.id = users.length
+                    data.username = e.data.username 
+                    data.password = e.data.password
+                    data.carID = e.data.carID 
+
+                    var json = JSON.stringify(data);
+                    console.log(json)
+
+                    var xhr2 = new XMLHttpRequest();
+                    xhr2.open('POST',"http://localhost:5000/users", true);
+                    xhr2.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                    xhr2.onload = function(){
+                        if(xhr2.readyState === 4 && xhr2.status === 201){
+                            postMessage("Success");
+                        } else {
+                            postMessage("Fail");
+                        }
+                    }
+                    xhr2.send(json);
+                }
+                xhr.send(null);
+                break;
+            case "Get all users":
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', "http://localhost:5000/users", true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    var users = JSON.parse(xhr.responseText);
+                    if(xhr.readyState === 4 && xhr.status === 200){
+                        postMessage(users);
+                    } else {
+                        //console.error(users);
+                    }
+                }
+                xhr.send(null);
+                break;
             case "Get Username":
                 request.onsuccess = async function (e) {
                     db = request.result;
