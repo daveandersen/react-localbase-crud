@@ -158,40 +158,25 @@ class App extends React.Component {
 
   getUsername = (e) => {
     e.preventDefault();
-    var usernameArray = [];
     myWorker.postMessage({type: "Get Username"})
     myWorker.onmessage = ($event) => {
-      console.log("Username: ", $event.data.username);
-      usernameArray.push($event.data)
-      console.log(usernameArray)
-      this.setState({username: usernameArray})
-      console.log(this.state.username)
+      this.setState({username: $event.data})
     }
   }
 
   getPassword = (e) => {
     e.preventDefault();
-    var passwordArray = [];
     myWorker.postMessage({type: "Get Password"})
     myWorker.onmessage = ($event) => {
-      console.log("Password: ", $event.data.password);
-      passwordArray.push($event.data)
-      console.log(passwordArray)
-      this.setState({password: passwordArray})
-      console.log(this.state.password)
+      this.setState({password: $event.data})
     }
   }
 
   getCarID = (e) => {
     e.preventDefault();
-    var carIDArray = [];
     myWorker.postMessage({type: "Get CarID"})
     myWorker.onmessage = ($event) => {
-      console.log("CarID: ", $event.data.carID);
-      carIDArray.push($event.data)
-      console.log(carIDArray)
-      this.setState({carID: carIDArray})
-      console.log(this.state.carID)
+      this.setState({carID: $event.data})
     }
   }
 
