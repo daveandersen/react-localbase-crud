@@ -48,36 +48,37 @@ class App extends React.Component {
       }
       
     })
-    
-
   }
 
   syncData = () => {
     myWorker.postMessage({type: "Get all users"});
-    myWorker.onmessage = (users) => {
-      db.collection('users').delete();
-      console.log("Localbase deleted")
+    myWorker.onmessage = async (users) => {
+      await db.collection('users').delete().then(() => {
+        console.log("Localbase deleted") 
+      }).then(() => {
+        users.data.forEach((user) => {
+          const inputData = {
+            id: user.id,
+            username: user.username,
+            password: user.password,
+            carID: user.carID
+          }
+          db.collection('users').add(inputData)
+          console.log('Inputted to localbase: ' , inputData) 
+        }).then(() => {
+        this.updateState();
+        });
+      }) 
+    }
+  }
 
-      users.data.forEach((user) => {
-        const inputData = {
-          id: user.id,
-          username: user.username,
-          password: user.password,
-          carID: user.carID
-        }
-        db.collection('users').add(inputData)
-        console.log('Inputted to localbase: ' , inputData) 
-        
-      })
-    } 
+  updateState = () => {
     var stateData = [];
     db.collection('users').get().then((users) => {
       users.forEach((user) => { stateData.push(user) })
       console.log(stateData)
       this.setState({ data: stateData })
     })
-    
-    
   }
 
   submitForm = (e) => {

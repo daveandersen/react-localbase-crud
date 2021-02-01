@@ -14,6 +14,7 @@ const worker = () => {
                 xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
                 xhr.onload = function(){
                     users = JSON.parse(xhr.responseText);
+                    
                     let data = {}
                     data.id = users.length
                     data.username = e.data.username 
@@ -46,7 +47,7 @@ const worker = () => {
                     if(xhr.readyState === 4 && xhr.status === 200){
                         postMessage(users);
                     } else {
-                        //console.error(users);
+                        console.error("Error has occured");
                     }
                 }
                 xhr.send(null);
