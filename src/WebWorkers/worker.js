@@ -65,24 +65,25 @@ const worker = () => {
             }
         }
 
-            switch (e.data.type) {
-                case "Get Username":
-                    getData("Get Username");
-                    break;
+        switch (e.data.type) {
+            case "Get Username":
+                getData("Get Username");
+                break;
 
-                case "Get Password":
-                    getData("Get Password");
-                    break;
+            case "Get Password":
+                getData("Get Password");
+                break;
 
-                case "Get CarID":
-                    getData("Get CarID");
-                    break;
+            case "Get CarID":
+                getData("Get CarID");
+                break;
 
-                default:
-                    console.log("Hello from worker.js");
-                    self.postMessage()
-                    break;
-            }
+            default:
+                console.log("Hello from worker.js");
+                self.postMessage()
+                break;
         }
     }
-    export default worker;
+}
+
+export default worker;
