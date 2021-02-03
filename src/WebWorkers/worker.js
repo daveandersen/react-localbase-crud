@@ -4,6 +4,97 @@ const worker = () => {
         var request = indexedDB.open("db");
 
         switch (e.data.type) {
+            //XMLHttpRequest
+            case "Input User":
+                var users = {}
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', "http://localhost:5000/users", true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    users = JSON.parse(xhr.responseText);
+                    
+                    var data = {}
+                    data.id = users.length
+                    data.username = e.data.username 
+                    data.password = e.data.password
+                    data.carID = e.data.carID 
+
+                    var json = JSON.stringify(data);
+                    console.log(json)
+
+                    var xhr2 = new XMLHttpRequest();
+                    xhr2.open('POST',"http://localhost:5000/users", true);
+                    xhr2.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                    xhr2.onload = function(){
+                        if(xhr2.readyState === 4 && xhr2.status === 201){
+                            postMessage("Success");
+                        } else {
+                            postMessage("Fail");
+                        }
+                    }
+                    xhr2.send(json);
+                }
+                xhr.send(null);
+                break;
+
+            case "UpdateOne":
+                var data = {};
+                data.username = e.data.value.username 
+                data.password = e.data.value.password
+                data.carID = e.data.value.carID 
+    
+                var json = JSON.stringify(data);
+    
+                var xhr = new XMLHttpRequest();
+                xhr.open('PATCH',`http://localhost:5000/users/${e.data.value.id}`,true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    console.log(xhr.response)
+                    if(xhr.readyState === 4 && xhr.status === 200){
+                        postMessage('Success');
+                    } else {
+                        postMessage('Fail');
+                    }
+                }
+                xhr.send(json);
+                break;
+            
+            case "DeleteOne":
+                break;
+
+            case "Get all users":
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', "http://localhost:5000/users", true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    var users = JSON.parse(xhr.responseText);
+                    if(xhr.readyState === 4 && xhr.status === 200){
+                        postMessage(users);
+                    } else {
+                        console.error("Error has occured");
+                    }
+                }
+                xhr.send(null);
+                break;
+            
+            case "Get one user":
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', `http://localhost:5000/users/${e.data.value.id}`, true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    var user = JSON.parse(xhr.responseText);
+                    if(xhr.readyState === 4 && xhr.status === 200){
+                        postMessage(user);
+                    }
+                    else {
+                        console.error('Error has occured!');
+                    }
+                }
+                xhr.send(null);
+                break;
+            
+            //IndexedDB Operations
             case "Get All":
                 getData("Get All");
                 break;
@@ -21,25 +112,148 @@ const worker = () => {
                 break;
 
             case "Create User":
-                console.log(e.data.value)
                 addData(e.data.value);
+                break;
+            
+            case "Update One":
+                updateOne(e.data.value)
+                break;
+
+            case "Delete One":
+                deleteOne(e.data.value.id)
+                break;
+            
+            case "Delete User":
+                deleteData();
                 break;
 
             default:
-                console.log("Hello from worker.js");
+                //console.log("Hello from worker.js");
                 self.postMessage()
                 break;
         }
 
+        function deleteOne(id){
+            request.onsuccess = function(e) {
+                db = request.result;
+
+                var transaction = db.transaction(["users"], "readwrite");
+
+                transaction.oncomplete = function(event) {
+                    console.log('IndexedDB opened for: deleteOne')
+                };
+
+                transaction.onerror = function (event) {
+                    console.log('Error has occured')
+                };
+
+                var objectStore = transaction.objectStore("users");
+
+                var objectStoreRequest = objectStore.delete(id);
+
+                objectStoreRequest.onsuccess = function(event) {
+                    console.log('Data deleted')
+                    postMessage('Done');
+                };
+
+                objectStoreRequest.onerror = function(event){
+                    console.log('Error has occured')
+                }
+
+            }
+        }
+
+        function updateOne(data){
+            db = request.result;
+
+            var transaction = db.transaction(["users"], "readwrite");
+
+            transaction.oncomplete = function(event) {
+                console.log('IndexedDB opened for: updateOne')
+            };
+
+            transaction.onerror = function (event) {
+                console.log('Error has occured')
+            };
+
+            var objectStore = transaction.objectStore("users");
+
+            var objectStoreRequest = objectStore.put(data, data.id)
+
+            objectStoreRequest.onsuccess = function(event) {
+                console.log('Data updated')
+                postMessage('Done');
+            };
+
+            objectStoreRequest.onerror = function(event){
+                console.log('Error has occured')
+            }
+        }
+
+        function addData(data){
+            request.onsuccess = function(e) {
+                db = request.result;
+
+                var transaction = db.transaction(["users"], "readwrite");
+
+                transaction.oncomplete = function(event) {
+                    console.log('IndexedDB opened for: addData')
+                };
+
+                transaction.onerror = function (event) {
+                    console.log('Error has occured')
+                };
+
+                var objectStore = transaction.objectStore("users");
+            
+
+                var objectStoreRequest = objectStore.add(data, data.id);
+
+                objectStoreRequest.onsuccess = function(event) {
+                    console.log('Data added to local storage.')
+                    postMessage('Done');
+                };
+
+                objectStoreRequest.onerror = function(event){
+                    console.log('Error has occured')
+                }
+            }
+            
+        }
+
+        function deleteData(){
+            request.onsuccess = function(e) {
+                db = request.result;
+
+                var transaction = db.transaction(["users"], "readwrite");
+
+                transaction.oncomplete = function(event) {
+                console.log('IndexedDB opened for: deleteData')
+                };
+
+                transaction.onerror = function (event) {
+                    // Don't forget to handle errors!
+                };
+
+                var objectStore = transaction.objectStore("users");
+
+                var objectStoreRequest = objectStore.clear();
+
+                objectStoreRequest.onsuccess = function(event) {
+                    console.log('Data deleted from local storage.')
+                    postMessage('Done');
+                };
+            }
+            
+        }
+
         function getData(type) {
-            console.log("Bohay")
-            request.onsuccess = async function (e) {
-                console.log("Hello")
+            request.onsuccess = function (e) {
                 db = request.result;
 
                 var transaction = db.transaction(["users"], "readwrite");
                 transaction.oncomplete = function (event) {
-                    console.log("All done!");
+                    console.log('IndexedDB opened for: getData')
                 };
 
                 transaction.onerror = function (event) {
@@ -53,7 +267,7 @@ const worker = () => {
                 switch (type) {
                     case "Get All":
                         request2.onsuccess = function(event) {
-                            postMessage(event.result)
+                            postMessage(event.target.result)
                         }
                         break;
 
