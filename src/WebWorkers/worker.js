@@ -3,6 +3,7 @@ const worker = () => {
         var db;
         var request = indexedDB.open("db");
 
+<<<<<<< HEAD
         console.log(request)
         switch (e.data.type) {
             case "Input User":
@@ -88,85 +89,81 @@ const worker = () => {
                             console.log('Finished iterating');
                         }
                     }
+=======
+        function getData(type) {
+            console.log("Bohay")
+            request.onsuccess = async function (e) {
+                console.log("Hello")
+                db = request.result;
+
+                var transaction = db.transaction(["users"], "readwrite");
+                transaction.oncomplete = function (event) {
+                    console.log("All done!");
+>>>>>>> 0a711a9b4806b4a298e9b43da62f4b668c806004
                 };
-                break;
-            
-            case "Get Password":
-                request.onsuccess = async function (e) {
-                    db = request.result;
 
-                    var transaction = db.transaction(["users"], "readwrite");
-                    transaction.oncomplete = function (event) {
-                        console.log("All done!");
-                    };
+                transaction.onerror = function (event) {
+                    // Don't forget to handle errors!
+                };
 
-                    transaction.onerror = function (event) {
-                        // Don't forget to handle errors!
-                    };
+                var objectStore = transaction.objectStore("users");
+                var request2 = objectStore.getAll();
+                var objectArray = [];
 
-                    var objectStore = transaction.objectStore("users");
-                    var request2 = objectStore.getAll();
-                    request2.onsuccess = function (event) {
-                        console.log(event.target.result)
-                    }
-
-                    var cursorRequest = objectStore.openCursor();
-
-                    cursorRequest.onsuccess = function (event) {
-                        var cursor = event.target.result;
-
-                        if (cursor) {
-                            var value = cursor.value.password;
-                            console.log('Password:', value);
-                            postMessage({
-                                id: cursor.value.id,
-                                password: cursor.value.password
+                switch (type) {
+                    case "Get Username":
+                        console.log("Hi")
+                        request2.onsuccess = function (event) {
+                            event.target.result.forEach(user => {
+                                objectArray.push({
+                                    id: user.id,
+                                    username: user.username
+                                })
                             });
-                            cursor.continue();
-                        } else {
-                            console.log('Finished iterating');
+                            postMessage(objectArray);
                         }
-                    }
-                };
+                    break;
+                    
+                    case "Get Password":
+                        console.log("Hi")
+                        request2.onsuccess = function (event) {
+                            event.target.result.forEach(user => {
+                                objectArray.push({
+                                    id: user.id,
+                                    password: user.password
+                                })
+                            });
+                            postMessage(objectArray);
+                        }
+                    break;
+
+                    case "Get CarID":
+                        console.log("Hi")
+                        request2.onsuccess = function (event) {
+                            event.target.result.forEach(user => {
+                                objectArray.push({
+                                    id: user.id,
+                                    carID: user.carID
+                                })
+                            });
+                            postMessage(objectArray);
+                        }
+                    break;
+                }
+            }
+        }
+
+        switch (e.data.type) {
+            case "Get Username":
+                getData("Get Username");
+                break;
+
+            case "Get Password":
+                getData("Get Password");
                 break;
 
             case "Get CarID":
-                request.onsuccess = async function (e) {
-                    db = request.result;
-                    
-                    var transaction = db.transaction(["users"], "readwrite");
-                    transaction.oncomplete = function (event) {
-                        console.log("All done!");
-                    };
-
-                    transaction.onerror = function (event) {
-                        // Don't forget to handle errors!
-                    };
-
-                    var objectStore = transaction.objectStore("users");
-                    var request2 = objectStore.getAll();
-                    request2.onsuccess = function (event) {
-                        console.log(event.target.result)
-                    }
-
-                    var cursorRequest = objectStore.openCursor();
-
-                    cursorRequest.onsuccess = function (event) {
-                        var cursor = event.target.result;
-
-                        if (cursor) {
-                            var value = cursor.value.carID;
-                            console.log('Car ID:', value);
-                            postMessage({
-                                id: cursor.value.id,
-                                carID: cursor.value.carID
-                            });
-                            cursor.continue();
-                        } else {
-                            console.log('Finished iterating');
-                        }
-                    }
-                };
+                getData("Get CarID");
                 break;
 
             default:
@@ -176,4 +173,5 @@ const worker = () => {
         }
     }
 }
+
 export default worker;
