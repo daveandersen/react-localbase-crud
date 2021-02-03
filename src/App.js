@@ -199,6 +199,15 @@ class App extends React.Component {
     }
   }
 
+  getAll = (e) => {
+    e.preventDefault();
+    myWorker.postMessage({type: "Get All"})
+    myWorker.onmessage = ($event) => {
+      console.log($event.data);
+    }
+  }
+
+
   render() {
     const { data, isEditable, username, password, carID} = this.state;
 
@@ -259,6 +268,7 @@ class App extends React.Component {
           <button onClick = {this.getUsername}>Get Username</button>
           <button onClick = {this.getPassword}>Get Password</button>
           <button onClick = {this.getCarID}>Get carID</button>
+          <button onClick = {this.getAll}>Get All</button>
           <table>
             <tr>
               <th>ID</th>
