@@ -1,11 +1,8 @@
 import React from 'react';
 import './App.css';
-import Localbase from 'localbase';
-import userService from './services/userService';
 import worker from './WebWorkers/worker.js';
 import WebWorker from './WebWorkers/workerSetup';
 
-let db = new Localbase('db')
 var myWorker = new WebWorker(worker);
 
 class App extends React.Component {
@@ -110,14 +107,6 @@ class App extends React.Component {
     myWorker.onmessage = (user) => {
       myWorker.postMessage({type: "UpdateOne", value: {id: user.data[0]._id, username: username, password: password, carID: carID}})
       myWorker.onmessage = (result) => {
-<<<<<<< HEAD
-        console.log(result.data); 
-        if(result.data === 'Success'){
-          this.syncData();
-        };
-      }
-    }
-=======
       console.log(result.data); 
       if(result.data === 'Success'){
         this.syncData();
@@ -126,16 +115,14 @@ class App extends React.Component {
     }
     
 
->>>>>>> WebWorker-CRUD-Branch
   }
 
   deleteData = userid => () => {
-    // const { data, isEditable } = this.state;
     
-    myWorker.postMessage({type: "Get one user", value: {id: userid}});
+    myWorker.postMessage({type: "Get one user", value: {id: userid}}); 
     myWorker.onmessage = (user) => {
       myWorker.postMessage({type: "DeleteOne", value: {id: user.data[0]._id}})
-      myWorker.onmessage = (result) => {
+      myWorker.onmessage = (result) => { 
         if(result.data === 'Success'){
           this.syncData();
         };

@@ -61,6 +61,18 @@ const worker = () => {
                 break;
             
             case "DeleteOne":
+                var xhr = new XMLHttpRequest();
+                xhr.open('DELETE', `http://localhost:5000/users/${e.data.value.id}`, true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    var users = JSON.parse(xhr.responseText);
+                    if(xhr.readyState === 4 && xhr.status === 200){
+                        postMessage('Success');
+                    } else {
+                        postMessage('Error');
+                    }
+                }
+                xhr.send(null);
                 break;
 
             case "Get all users":
