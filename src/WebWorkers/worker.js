@@ -6,7 +6,6 @@ const worker = () => {
         switch (e.data.type) {
             //XMLHttpRequest
             case "Input User":
-                
                 var users = {}
 
                 var xhr = new XMLHttpRequest();
@@ -62,33 +61,6 @@ const worker = () => {
                 break;
             
             case "DeleteOne":
-                var xhr = new XMLHttpRequest();
-                xhr.open('DELETE',`http://localhost:5000/users/${e.data.value.id}`,true);
-                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
-                xhr.onload = function(){
-                    console.log(xhr.responseText);
-                    if(xhr.readyState === 4 && xhr.status === 200){
-                        postMessage('Success');
-                    } else {
-                        postMessage('Fail');
-                    }
-                }
-                xhr.send(null);
-                break;
-
-            case "DeleteAll":
-                var xhr = new XMLHttpRequest();
-                xhr.open('DELETE',`http://localhost:5000/users/`,true);
-                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
-                xhr.onload = function(){
-                    console.log(xhr.responseText);
-                    if(xhr.readyState === 4 && xhr.status === 200){
-                        postMessage('Success');
-                    } else {
-                        postMessage('Fail');
-                    }
-                }
-                xhr.send(null);
                 break;
 
             case "Get all users":
@@ -143,6 +115,14 @@ const worker = () => {
                 addData(e.data.value);
                 break;
             
+            case "Update One":
+                updateOne(e.data.value)
+                break;
+
+            case "Delete One":
+                deleteOne(e.data.value.id)
+                break;
+            
             case "Delete User":
                 deleteData();
                 break;
@@ -151,6 +131,63 @@ const worker = () => {
                 //console.log("Hello from worker.js");
                 self.postMessage()
                 break;
+        }
+
+        function deleteOne(id){
+            request.onsuccess = function(e) {
+                db = request.result;
+
+                var transaction = db.transaction(["users"], "readwrite");
+
+                transaction.oncomplete = function(event) {
+                    console.log('IndexedDB opened for: deleteOne')
+                };
+
+                transaction.onerror = function (event) {
+                    console.log('Error has occured')
+                };
+
+                var objectStore = transaction.objectStore("users");
+
+                var objectStoreRequest = objectStore.delete(id);
+
+                objectStoreRequest.onsuccess = function(event) {
+                    console.log('Data deleted')
+                    postMessage('Done');
+                };
+
+                objectStoreRequest.onerror = function(event){
+                    console.log('Error has occured')
+                }
+
+            }
+        }
+
+        function updateOne(data){
+            db = request.result;
+
+            var transaction = db.transaction(["users"], "readwrite");
+
+            transaction.oncomplete = function(event) {
+                console.log('IndexedDB opened for: updateOne')
+            };
+
+            transaction.onerror = function (event) {
+                console.log('Error has occured')
+            };
+
+            var objectStore = transaction.objectStore("users");
+
+            var objectStoreRequest = objectStore.put(data, data.id)
+
+            objectStoreRequest.onsuccess = function(event) {
+                console.log('Data updated')
+                postMessage('Done');
+            };
+
+            objectStoreRequest.onerror = function(event){
+                console.log('Error has occured')
+            }
         }
 
         function addData(data){

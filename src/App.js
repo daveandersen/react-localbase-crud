@@ -110,12 +110,23 @@ class App extends React.Component {
     myWorker.onmessage = (user) => {
       myWorker.postMessage({type: "UpdateOne", value: {id: user.data[0]._id, username: username, password: password, carID: carID}})
       myWorker.onmessage = (result) => {
+<<<<<<< HEAD
         console.log(result.data); 
         if(result.data === 'Success'){
           this.syncData();
         };
       }
     }
+=======
+      console.log(result.data); 
+      if(result.data === 'Success'){
+        this.syncData();
+      };
+    }
+    }
+    
+
+>>>>>>> WebWorker-CRUD-Branch
   }
 
   deleteData = userid => () => {
