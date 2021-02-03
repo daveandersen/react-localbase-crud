@@ -25,61 +25,44 @@ class App extends React.Component {
   }
 
   localbaseDBSync = () => {
-    var dbIDs = "";
-    var localbaseIDs = "";
-    
-    db.collection('users').get().then((users) => {
-      users.forEach((user) => { localbaseIDs = localbaseIDs + '' + user.id })
+    myWorker.postMessage({type: "Get All"});
+    myWorker.onmessage = (localUsers) => { 
+      var dbIDs = "";  
+      var localbaseIDs = "";
+
+      localUsers.data.forEach((user) => { localbaseIDs = localbaseIDs + '' + user.id})
       myWorker.postMessage({type: "Get all users"});
       myWorker.onmessage = (users) => {
         users.data.forEach((user) => { dbIDs = dbIDs + '' + user.id });
         console.log(dbIDs);
         console.log(localbaseIDs)
         if (dbIDs === localbaseIDs) {
-          var stateData = [];
-          db.collection('users').get().then((users) => {
-            users.forEach((user) => { stateData.push(user) })
-            this.setState({ data: stateData })
-          })
+          this.updateState();
         } else {
           console.log('Syncing.')
           this.syncData();
         }
       }
-      
-    })
-  }
-
-  syncData = () => {
-    myWorker.postMessage({type: "Get all users"});
-    myWorker.onmessage = async (users) => {
-      await db.collection('users').delete().then(() => {
-        console.log("Localbase deleted") 
-      }).then(() => {
-        users.data.forEach((user) => {
-          const inputData = {
-            id: user.id,
-            username: user.username,
-            password: user.password,
-            carID: user.carID
-          }
-          db.collection('users').add(inputData)
-          console.log('Inputted to localbase: ' , inputData) 
-        }).then(() => {
-        this.updateState();
-        });
-      }) 
     }
   }
 
-  updateState = () => {
-    var stateData = [];
-    db.collection('users').get().then((users) => {
-      users.forEach((user) => { stateData.push(user) })
-      console.log(stateData)
-      this.setState({ data: stateData })
-    })
-  }
+  syncData = () => {
+    myWorker.postMessage({type: "Get all users"}); 
+    myWorker.onmessage = (users) => {
+      console.log("Hello")
+      myWorker.postMessage({type: "Delete User"});
+      users.data.forEach((user) => {
+        const inputData = {
+          id: user.id,
+          username: user.username,
+          password: user.password,
+          carID: user.carID
+        }
+        myWorker.postMessage({type: "Create User", value: inputData})
+      });
+      this.updateState();
+    }
+  } 
 
   submitForm = (e) => {
     e.preventDefault();
@@ -90,37 +73,22 @@ class App extends React.Component {
 
     myWorker.postMessage({type: "Input User", username: username, password: password, carID: carID})
     myWorker.onmessage = (e) => { 
-      console.log(e.data);
       if(e.data === 'Success'){
         this.localbaseDBSync();
       }
-<<<<<<< HEAD
     } 
-    
-    // userService.getAll().then(async (users) => {
-    //   const inputData = {
-    //     id: users.data.length,
-    //     username: username,
-    //     password: password,
-    //     carID: carID
-    //   }
-    //   await userService.createData(inputData)
+  }
 
-    // }).then(() =>
-    //   this.localbaseDBSync()
-=======
-      myWorker.postMessage({type: "Create User", value: inputData})
-      myWorker.onmessage = ($event) => {
-        console.log($event.data)
+  updateState = () => {
+    var stateData = []; 
+    myWorker.postMessage({type: "Get All"});
+    myWorker.onmessage = (users) => {
+      if(Array.isArray(users.data)) {
+        users.data.forEach((user) => stateData.push(user));
+        this.setState({data: stateData})
       }
-      // await userService.createData(inputData)
-
-    })
-    //.then(() =>
-    //   // this.localbaseDBSync()
->>>>>>> 2d6041497d684427c794a2512d6a78eb6c3e9699
-    // )
-
+      
+    }
   }
 
   edit = (index) => {
@@ -132,47 +100,45 @@ class App extends React.Component {
     const username = e.target.username.value;
     const password = e.target.password.value;
     const carID = e.target.carID.value;
-    const { data, isEditable } = this.state;
-    console.log(userid);
+    const { data, isEditable } = this.state; 
 
     data[isEditable].username = username;
     data[isEditable].password = password;
-    data[isEditable].carID = carID;
+    data[isEditable].carID = carID; 
 
-    this.setState({ data: data }, () => {
-      db.collection('users').doc({ id: userid }).update({
-        id: userid,
-        username: username,
-        password: password,
-        carID: carID
-
-      })
-    });
-    userService.get(userid).then((oldData) => {
-      userService.updateData(oldData.data[0]._id, data[isEditable])
-    })
-    this.localbaseDBSync();
+    myWorker.postMessage({type: "Get one user", value: {id: userid}});
+    myWorker.onmessage = (user) => {
+      myWorker.postMessage({type: "UpdateOne", value: {id: user.data[0]._id, username: username, password: password, carID: carID}})
+      myWorker.onmessage = (result) => {
+        console.log(result.data); 
+        if(result.data === 'Success'){
+          this.syncData();
+        };
+      }
+    }
   }
 
   deleteData = userid => () => {
-    const { data, isEditable } = this.state;
-
-    const filteredData = data.filter((input, index) => index !== isEditable);
-    this.setState({ data: filteredData, isEditable: null }, () => {
-      db.collection('users').doc({ id: userid }).delete()
-    });
-
-    userService.get(userid).then((oldData) => {
-      userService.deleteData(oldData.data[0]._id)
-    })
-    this.localbaseDBSync();
+    // const { data, isEditable } = this.state;
+    
+    myWorker.postMessage({type: "Get one user", value: {id: userid}});
+    myWorker.onmessage = (user) => {
+      myWorker.postMessage({type: "DeleteOne", value: {id: user.data[0]._id}})
+      myWorker.onmessage = (result) => {
+        if(result.data === 'Success'){
+          this.syncData();
+        };
+      }
+    }
   }
 
   deleteAll = () => {
-    this.setState({ data: [] })
-    userService.deleteAll();
-    db.collection('users').delete();
-    this.localbaseDBSync();
+    myWorker.postMessage({type: "DeleteAll"})
+    myWorker.onmessage = (result) => {
+      if(result.data === 'Success'){
+        this.syncData();
+      }
+    }
   }
 
   getUsername = (e) => {

@@ -3,10 +3,8 @@ const worker = () => {
         var db;
         var request = indexedDB.open("db");
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        console.log(request)
         switch (e.data.type) {
+            //XMLHttpRequest
             case "Input User":
                 
                 var users = {}
@@ -17,7 +15,7 @@ const worker = () => {
                 xhr.onload = function(){
                     users = JSON.parse(xhr.responseText);
                     
-                    let data = {}
+                    var data = {}
                     data.id = users.length
                     data.username = e.data.username 
                     data.password = e.data.password
@@ -40,6 +38,59 @@ const worker = () => {
                 }
                 xhr.send(null);
                 break;
+
+            case "UpdateOne":
+                var data = {};
+                data.username = e.data.value.username 
+                data.password = e.data.value.password
+                data.carID = e.data.value.carID 
+    
+                var json = JSON.stringify(data);
+    
+                var xhr = new XMLHttpRequest();
+                xhr.open('PATCH',`http://localhost:5000/users/${e.data.value.id}`,true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    console.log(xhr.response)
+                    if(xhr.readyState === 4 && xhr.status === 200){
+                        postMessage('Success');
+                    } else {
+                        postMessage('Fail');
+                    }
+                }
+                xhr.send(json);
+                break;
+            
+            case "DeleteOne":
+                var xhr = new XMLHttpRequest();
+                xhr.open('DELETE',`http://localhost:5000/users/${e.data.value.id}`,true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    console.log(xhr.responseText);
+                    if(xhr.readyState === 4 && xhr.status === 200){
+                        postMessage('Success');
+                    } else {
+                        postMessage('Fail');
+                    }
+                }
+                xhr.send(null);
+                break;
+
+            case "DeleteAll":
+                var xhr = new XMLHttpRequest();
+                xhr.open('DELETE',`http://localhost:5000/users/`,true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    console.log(xhr.responseText);
+                    if(xhr.readyState === 4 && xhr.status === 200){
+                        postMessage('Success');
+                    } else {
+                        postMessage('Fail');
+                    }
+                }
+                xhr.send(null);
+                break;
+
             case "Get all users":
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', "http://localhost:5000/users", true);
@@ -54,45 +105,24 @@ const worker = () => {
                 }
                 xhr.send(null);
                 break;
-            case "Get Username":
-                request.onsuccess = async function (e) {
-                    db = request.result;
-
-                    var transaction = db.transaction(["users"], "readwrite");
-                    transaction.oncomplete = function (event) {
-                        console.log("All done!");
-                    };
-
-                    transaction.onerror = function (event) {
-                        // Don't forget to handle errors!
-                    };
-
-                    var objectStore = transaction.objectStore("users");
-                    var request2 = objectStore.getAll();
-                    request2.onsuccess = function (event) {
-                        console.log(event.target.result)
+            
+            case "Get one user":
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', `http://localhost:5000/users/${e.data.value.id}`, true);
+                xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+                xhr.onload = function(){
+                    var user = JSON.parse(xhr.responseText);
+                    if(xhr.readyState === 4 && xhr.status === 200){
+                        postMessage(user);
                     }
-
-                    var cursorRequest = objectStore.openCursor();
-
-                    cursorRequest.onsuccess = function (event) {
-                        var cursor = event.target.result;
-                        
-                        if (cursor) {
-                            var value = cursor.value.username;
-                            console.log('Username:', value);
-                            postMessage({
-                                id: cursor.value.id,
-                                username: cursor.value.username
-                            });
-                            cursor.continue();
-                        } else {
-                            console.log('Finished iterating');
-                        }
+                    else {
+                        console.error('Error has occured!');
                     }
-=======
-=======
-        switch (e.data.type) {
+                }
+                xhr.send(null);
+                break;
+            
+            //IndexedDB Operations
             case "Get All":
                 getData("Get All");
                 break;
@@ -110,27 +140,83 @@ const worker = () => {
                 break;
 
             case "Create User":
-                console.log(e.data.value)
                 addData(e.data.value);
+                break;
+            
+            case "Delete User":
+                deleteData();
                 break;
 
             default:
-                console.log("Hello from worker.js");
+                //console.log("Hello from worker.js");
                 self.postMessage()
                 break;
         }
 
->>>>>>> 2d6041497d684427c794a2512d6a78eb6c3e9699
+        function addData(data){
+            request.onsuccess = function(e) {
+                db = request.result;
+
+                var transaction = db.transaction(["users"], "readwrite");
+
+                transaction.oncomplete = function(event) {
+                    console.log('IndexedDB opened for: addData')
+                };
+
+                transaction.onerror = function (event) {
+                    console.log('Error has occured')
+                };
+
+                var objectStore = transaction.objectStore("users");
+            
+
+                var objectStoreRequest = objectStore.add(data, data.id);
+
+                objectStoreRequest.onsuccess = function(event) {
+                    console.log('Data added to local storage.')
+                    postMessage('Done');
+                };
+
+                objectStoreRequest.onerror = function(event){
+                    console.log('Error has occured')
+                }
+            }
+            
+        }
+
+        function deleteData(){
+            request.onsuccess = function(e) {
+                db = request.result;
+
+                var transaction = db.transaction(["users"], "readwrite");
+
+                transaction.oncomplete = function(event) {
+                console.log('IndexedDB opened for: deleteData')
+                };
+
+                transaction.onerror = function (event) {
+                    // Don't forget to handle errors!
+                };
+
+                var objectStore = transaction.objectStore("users");
+
+                var objectStoreRequest = objectStore.clear();
+
+                objectStoreRequest.onsuccess = function(event) {
+                    console.log('Data deleted from local storage.')
+                    postMessage('Done');
+                };
+            }
+            
+        }
+
         function getData(type) {
-            console.log("Bohay")
-            request.onsuccess = async function (e) {
-                console.log("Hello")
+            request.onsuccess = function (e) {
                 db = request.result;
 
                 var transaction = db.transaction(["users"], "readwrite");
                 transaction.oncomplete = function (event) {
-                    console.log("All done!");
->>>>>>> 0a711a9b4806b4a298e9b43da62f4b668c806004
+                    console.log('IndexedDB opened for: getData')
                 };
 
                 transaction.onerror = function (event) {
@@ -144,7 +230,7 @@ const worker = () => {
                 switch (type) {
                     case "Get All":
                         request2.onsuccess = function(event) {
-                            postMessage(event.result)
+                            postMessage(event.target.result)
                         }
                         break;
 

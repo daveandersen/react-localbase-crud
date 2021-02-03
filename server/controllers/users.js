@@ -13,11 +13,10 @@ export const getUsers = async(req, res) => {
 
 export const getOneUser = async (req, res) => {
     const id = req.params.id
-
     try{
         const user = await User.find({id: id}, function(err,obj) {
             //console.log(obj)
-            if(err) console.log(err)
+            if(err) console.error('Error has occured!')
         } )
 
         res.status(200).json(user);
@@ -44,7 +43,7 @@ export const createUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
     const id = req.params.id;
-
+    console.log(req.params); 
     const updatedUser = await User.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
     .then(data => {
         if(!data) {
