@@ -96,11 +96,16 @@ class App extends React.Component {
         password: password,
         carID: carID
       }
-      await userService.createData(inputData)
+      myWorker.postMessage({type: "Create User", value: inputData})
+      myWorker.onmessage = ($event) => {
+        console.log($event.data)
+      }
+      // await userService.createData(inputData)
 
-    }).then(() =>
-      this.localbaseDBSync()
-    )
+    })
+    //.then(() =>
+    //   // this.localbaseDBSync()
+    // )
 
   }
 
@@ -179,7 +184,6 @@ class App extends React.Component {
       this.setState({carID: $event.data})
     }
   }
-
 
   render() {
     const { data, isEditable, username, password, carID} = this.state;
