@@ -4,6 +4,7 @@ const worker = () => {
         var request = indexedDB.open("db");
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         console.log(request)
         switch (e.data.type) {
             case "Input User":
@@ -90,6 +91,36 @@ const worker = () => {
                         }
                     }
 =======
+=======
+        switch (e.data.type) {
+            case "Get All":
+                getData("Get All");
+                break;
+
+            case "Get Username":
+                getData("Get Username");
+                break;
+
+            case "Get Password":
+                getData("Get Password");
+                break;
+
+            case "Get CarID":
+                getData("Get CarID");
+                break;
+
+            case "Create User":
+                console.log(e.data.value)
+                addData(e.data.value);
+                break;
+
+            default:
+                console.log("Hello from worker.js");
+                self.postMessage()
+                break;
+        }
+
+>>>>>>> 2d6041497d684427c794a2512d6a78eb6c3e9699
         function getData(type) {
             console.log("Bohay")
             request.onsuccess = async function (e) {
@@ -109,8 +140,14 @@ const worker = () => {
                 var objectStore = transaction.objectStore("users");
                 var request2 = objectStore.getAll();
                 var objectArray = [];
-
+                
                 switch (type) {
+                    case "Get All":
+                        request2.onsuccess = function(event) {
+                            postMessage(event.target.result)
+                        }
+                        break;
+
                     case "Get Username":
                         console.log("Hi")
                         request2.onsuccess = function (event) {
@@ -122,8 +159,8 @@ const worker = () => {
                             });
                             postMessage(objectArray);
                         }
-                    break;
-                    
+                        break;
+
                     case "Get Password":
                         console.log("Hi")
                         request2.onsuccess = function (event) {
@@ -135,7 +172,7 @@ const worker = () => {
                             });
                             postMessage(objectArray);
                         }
-                    break;
+                        break;
 
                     case "Get CarID":
                         console.log("Hi")
@@ -148,28 +185,9 @@ const worker = () => {
                             });
                             postMessage(objectArray);
                         }
-                    break;
+                        break;
                 }
             }
-        }
-
-        switch (e.data.type) {
-            case "Get Username":
-                getData("Get Username");
-                break;
-
-            case "Get Password":
-                getData("Get Password");
-                break;
-
-            case "Get CarID":
-                getData("Get CarID");
-                break;
-
-            default:
-                console.log("Hello from worker.js");
-                self.postMessage()
-                break;
         }
     }
 }

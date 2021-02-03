@@ -94,6 +94,7 @@ class App extends React.Component {
       if(e.data === 'Success'){
         this.localbaseDBSync();
       }
+<<<<<<< HEAD
     } 
     
     // userService.getAll().then(async (users) => {
@@ -107,6 +108,17 @@ class App extends React.Component {
 
     // }).then(() =>
     //   this.localbaseDBSync()
+=======
+      myWorker.postMessage({type: "Create User", value: inputData})
+      myWorker.onmessage = ($event) => {
+        console.log($event.data)
+      }
+      // await userService.createData(inputData)
+
+    })
+    //.then(() =>
+    //   // this.localbaseDBSync()
+>>>>>>> 2d6041497d684427c794a2512d6a78eb6c3e9699
     // )
 
   }
@@ -186,7 +198,6 @@ class App extends React.Component {
       this.setState({carID: $event.data})
     }
   }
-
 
   render() {
     const { data, isEditable, username, password, carID} = this.state;
