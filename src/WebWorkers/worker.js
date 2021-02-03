@@ -53,7 +53,7 @@ const worker = () => {
                 switch (type) {
                     case "Get All":
                         request2.onsuccess = function(event) {
-                            postMessage(event.target.result)
+                            postMessage(event.result)
                         }
                         break;
 
