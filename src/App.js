@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import worker from './WebWorkers/worker.js';
 import WebWorker from './WebWorkers/workerSetup';
+import _ from 'lodash';
 
 var myWorker = new WebWorker(worker);
 
@@ -13,12 +14,14 @@ class App extends React.Component {
       isEditable: null,
       username: [],
       password: [],
-      carID: []
+      carID: [],
+      lastAction: null,
     };
   }
 
   componentDidMount() {
     this.localbaseDBSync();
+    // this.syncData();
   }
 
   localbaseDBSync = () => {
@@ -44,22 +47,58 @@ class App extends React.Component {
   }
 
   syncData = () => {
+    // myWorker.postMessage({type: "SYNC"});
     myWorker.postMessage({type: "Get all users"}); 
     myWorker.onmessage = (users) => {
-      console.log("Hello")
-      myWorker.postMessage({type: "Delete User"});
-      users.data.forEach((user) => {
-        const inputData = {
-          id: user.id,
-          username: user.username,
-          password: user.password,
-          carID: user.carID
-        }
-        myWorker.postMessage({type: "Create User", value: inputData})
-      });
-      this.updateState();
+      myWorker.postMessage({type: "Get All"});
+      myWorker.onmessage = (localusers) => {
+        switch(this.state.lastAction){
+          case "INSERT":
+            const inputData = {
+              id: users.data.length,
+              username: users.data[users.data.length-1].username,
+              password: users.data[users.data.length-1].password,
+              carID: users.data[users.data.length-1].carID
+            }
+            myWorker.postMessage({type: "Create User", value: inputData});
+            break;
+          case "UPDATE":
+              console.log(_.isEqual(users, localusers))
+            break;
+          
+          case "DELETE":
+
+            break;
+
+          default:
+            myWorker.postMessage({type: "Delete User"});
+            users.data.forEach((user) => {
+            const inputData = {
+              id: user.id,
+              username: user.username,
+              password: user.password,
+              carID: user.carID
+            }
+            myWorker.postMessage({type: "Create User", value: inputData})
+          });
+            break;
+        };
+        this.updateState();
+      }
     }
   } 
+  
+  updateState = () => {
+    var stateData = []; 
+    myWorker.postMessage({type: "Get All"})
+    myWorker.onmessage = (users) => {
+      if(Array.isArray(users.data)) {
+        users.data.forEach((user) => stateData.push(user));
+        this.setState({data: stateData})
+      }
+      
+    }
+  }
 
   submitForm = (e) => {
     e.preventDefault();
@@ -71,21 +110,10 @@ class App extends React.Component {
     myWorker.postMessage({type: "Input User", username: username, password: password, carID: carID})
     myWorker.onmessage = (e) => { 
       if(e.data === 'Success'){
+        this.setState({lastAction: "INSERT"})
         this.localbaseDBSync();
       }
     } 
-  }
-
-  updateState = () => {
-    var stateData = []; 
-    myWorker.postMessage({type: "Get All"});
-    myWorker.onmessage = (users) => {
-      if(Array.isArray(users.data)) {
-        users.data.forEach((user) => stateData.push(user));
-        this.setState({data: stateData})
-      }
-      
-    }
   }
 
   edit = (index) => {
@@ -109,6 +137,7 @@ class App extends React.Component {
       myWorker.onmessage = (result) => {
       console.log(result.data); 
       if(result.data === 'Success'){
+        this.setState({lastAction: "UPDATE"})
         this.syncData();
       };
     }
