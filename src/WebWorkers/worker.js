@@ -53,7 +53,6 @@ const worker = () => {
                 xhr.open('PATCH',`http://localhost:5000/users/${e.data.value.id}`,true);
                 xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
                 xhr.onload = function(){
-                    console.log(xhr.response)
                     if(xhr.readyState === 4 && xhr.status === 200){
                         postMessage('Success');
                     } else {
@@ -182,30 +181,34 @@ const worker = () => {
         }
 
         function updateOne(data){
-            db = request.result;
+            var r = indexedDB.open("db");
+            r.onsuccess = function(event){
+                db = event.target.result;
+                var updatedData = {id: data.id, username: data.username, password: data.password, carID: data.carID}
+                var transaction = db.transaction(["users"], "readwrite");
 
-            var transaction = db.transaction(["users"], "readwrite");
+                transaction.oncomplete = function(event) {
+                    console.log('IndexedDB opened for: updateOne')
+                };
 
-            transaction.oncomplete = function(event) {
-                console.log('IndexedDB opened for: updateOne')
-            };
+                transaction.onerror = function (event) {
+                    console.log('Error has occured')
+                };
 
-            transaction.onerror = function (event) {
-                console.log('Error has occured')
-            };
+                var objectStore = transaction.objectStore("users");
 
-            var objectStore = transaction.objectStore("users");
+                var objectStoreRequest = objectStore.put(updatedData, data.id)
 
-            var objectStoreRequest = objectStore.put(data, data.id)
+                objectStoreRequest.onsuccess = function(event) {
+                    console.log('Data updated')
+                    postMessage('Done');
+                };
 
-            objectStoreRequest.onsuccess = function(event) {
-                console.log('Data updated')
-                postMessage('Done');
-            };
-
-            objectStoreRequest.onerror = function(event){
-                console.log('Error has occured')
+                objectStoreRequest.onerror = function(event){
+                    console.log('Error has occured')
+                }
             }
+            
         }
 
         function addData(data){
@@ -336,49 +339,49 @@ const worker = () => {
 
 
         //Other Functions
-        function compareData(type){
-            switch(type){
-                case "INSERT":
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('GET', "http://localhost:5000/users", true);
-                    xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
-                    xhr.onload = function(){
-                        var users = JSON.parse(xhr.responseText);
-                        if(xhr.readyState === 4 && xhr.status === 200){
-                            console.log('Hello on XML')
-                            console.log(users);
-                            request.onsuccess = function (e) {
-                                db = request.result;
+        // function compareData(type){
+        //     switch(type){
+        //         case "INSERT":
+        //             var xhr = new XMLHttpRequest();
+        //             xhr.open('GET', "http://localhost:5000/users", true);
+        //             xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
+        //             xhr.onload = function(){
+        //                 var users = JSON.parse(xhr.responseText);
+        //                 if(xhr.readyState === 4 && xhr.status === 200){
+        //                     console.log('Hello on XML')
+        //                     console.log(users);
+        //                     request.onsuccess = function (e) {
+        //                         db = request.result;
                 
-                                var transaction = db.transaction(["users"], "readwrite");
-                                transaction.oncomplete = function (event) {
-                                    console.log('IndexedDB opened for: getData')
-                                };
+        //                         var transaction = db.transaction(["users"], "readwrite");
+        //                         transaction.oncomplete = function (event) {
+        //                             console.log('IndexedDB opened for: getData')
+        //                         };
                 
-                                transaction.onerror = function (event) {
-                                    // Don't forget to handle errors!
-                                };
+        //                         transaction.onerror = function (event) {
+        //                             // Don't forget to handle errors!
+        //                         };
                 
-                                var objectStore = transaction.objectStore("users");
-                                var request2 = objectStore.getAll();
+        //                         var objectStore = transaction.objectStore("users");
+        //                         var request2 = objectStore.getAll();
 
-                                request2.onsuccess = function(event) {
-                                    console.log('Hello on IndexedDB')
-                                    console.log(event.target.result);
-                                }
+        //                         request2.onsuccess = function(event) {
+        //                             console.log('Hello on IndexedDB')
+        //                             console.log(event.target.result);
+        //                         }
                                 
-                            }
-                        } else {
-                            console.error("Error has occured");
-                        }
-                    }
-                    xhr.send(null);
-                    break;
+        //                     }
+        //                 } else {
+        //                     console.error("Error has occured");
+        //                 }
+        //             }
+        //             xhr.send(null);
+        //             break;
 
-                default:
-                    break;
-            }
-        }
+        //         default:
+        //             break;
+        //     }
+        // }
     }
 }
 

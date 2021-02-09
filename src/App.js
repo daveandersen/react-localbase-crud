@@ -47,7 +47,6 @@ class App extends React.Component {
   }
 
   syncData = () => {
-    // myWorker.postMessage({type: "SYNC"});
     myWorker.postMessage({type: "Get all users"}); 
     myWorker.onmessage = (users) => {
       myWorker.postMessage({type: "Get All"});
@@ -64,11 +63,11 @@ class App extends React.Component {
             break;
           case "UPDATE":
             const { isEditable } = this.state; 
-            console.log(users.data[isEditable]);
+            console.log(users.data[isEditable]); 
             // console.log(!_.isEqual(users, localusers))
             // console.log(users.data)
             if(!_.isEqual(users, localusers)){
-              myWorker.postMessage({type:"Update One", value: users.data[isEditable]})
+              myWorker.postMessage({type:"Update One", value: users.data[isEditable]});
             }
               
             break;
@@ -142,7 +141,6 @@ class App extends React.Component {
     myWorker.onmessage = (user) => {
       myWorker.postMessage({type: "UpdateOne", value: {id: user.data[0]._id, username: username, password: password, carID: carID}})
       myWorker.onmessage = (result) => {
-      console.log(result.data); 
       if(result.data === 'Success'){
         this.setState({lastAction: "UPDATE"})
         this.syncData();
