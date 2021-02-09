@@ -15,7 +15,7 @@ class App extends React.Component {
       username: [],
       password: [],
       carID: [],
-      lastAction: null,
+      lastAction: null
     };
   }
 
@@ -63,7 +63,14 @@ class App extends React.Component {
             myWorker.postMessage({type: "Create User", value: inputData});
             break;
           case "UPDATE":
-              console.log(_.isEqual(users, localusers))
+            const { isEditable } = this.state; 
+            console.log(users.data[isEditable]);
+            // console.log(!_.isEqual(users, localusers))
+            // console.log(users.data)
+            if(!_.isEqual(users, localusers)){
+              myWorker.postMessage({type:"Update One", value: users.data[isEditable]})
+            }
+              
             break;
           
           case "DELETE":
