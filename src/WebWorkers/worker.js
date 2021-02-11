@@ -4,9 +4,6 @@ const worker = () => {
         var request = indexedDB.open("db");
 
         switch (e.data.type) {
-            case "SYNC":
-                compareData("INSERT");
-                break;
             //XMLHttpRequest
             case "Input User":
                 var users = {}
@@ -94,11 +91,14 @@ const worker = () => {
             
             case "Get one user":
                 var xhr = new XMLHttpRequest();
+                console.log(e.data.value.id);
                 xhr.open('GET', `http://localhost:5000/users/${e.data.value.id}`, true);
                 xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
                 xhr.onload = function(){
                     var user = JSON.parse(xhr.responseText);
+                    console.log(user);
                     if(xhr.readyState === 4 && xhr.status === 200){
+                        console.log(user);
                         postMessage(user);
                     }
                     else {
@@ -135,7 +135,7 @@ const worker = () => {
                 break;
 
             case "Delete One":
-                deleteOne(e.data.value.id)
+                deleteOne(e.data.value)
                 break;
             
             case "Delete User":
@@ -151,13 +151,14 @@ const worker = () => {
         //IndexedDB Functions
 
         function deleteOne(id){
-            request.onsuccess = function(e) {
-                db = request.result;
-
+            var r = indexedDB.open("db");
+            r.onsuccess = function(event){
+                db = event.target.result;
+                // var updatedData = {id: data.id, username: data.username, password: data.password, carID: data.carID}
                 var transaction = db.transaction(["users"], "readwrite");
 
                 transaction.oncomplete = function(event) {
-                    console.log('IndexedDB opened for: deleteOne')
+                    console.log('IndexedDB opened for: updateOne')
                 };
 
                 transaction.onerror = function (event) {
@@ -166,7 +167,7 @@ const worker = () => {
 
                 var objectStore = transaction.objectStore("users");
 
-                var objectStoreRequest = objectStore.delete(id);
+                var objectStoreRequest = objectStore.delete(id)
 
                 objectStoreRequest.onsuccess = function(event) {
                     console.log('Data deleted')
@@ -176,8 +177,37 @@ const worker = () => {
                 objectStoreRequest.onerror = function(event){
                     console.log('Error has occured')
                 }
-
             }
+
+
+            // request.onsuccess = function(e) {
+            //     console.log(id);
+            //     db = request.result;
+
+            //     var transaction = db.transaction(["users"], "readwrite");
+
+            //     transaction.oncomplete = function(event) {
+            //         console.log('IndexedDB opened for: deleteOne')
+            //     };
+
+            //     transaction.onerror = function (event) {
+            //         console.log('Error has occured')
+            //     };
+
+            //     var objectStore = transaction.objectStore("users");
+
+            //     var objectStoreRequest = objectStore.delete(id);
+
+            //     objectStoreRequest.onsuccess = function(event) {
+            //         console.log('Data deleted')
+            //         postMessage('Done');
+            //     };
+
+            //     objectStoreRequest.onerror = function(event){
+            //         console.log('Error has occured')
+            //     }
+
+            // }
         }
 
         function updateOne(data){

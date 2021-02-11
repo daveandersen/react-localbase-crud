@@ -12,6 +12,7 @@ class App extends React.Component {
     this.state = {
       data: [],
       isEditable: null,
+      isDeleteable: null,
       username: [],
       password: [],
       carID: [],
@@ -51,6 +52,7 @@ class App extends React.Component {
     myWorker.onmessage = (users) => {
       myWorker.postMessage({type: "Get All"});
       myWorker.onmessage = (localusers) => {
+        const { isEditable, isDeleteable } = this.state; 
         switch(this.state.lastAction){
           case "INSERT":
             const inputData = {
@@ -62,18 +64,17 @@ class App extends React.Component {
             myWorker.postMessage({type: "Create User", value: inputData});
             break;
           case "UPDATE":
-            const { isEditable } = this.state; 
             console.log(users.data[isEditable]); 
             // console.log(!_.isEqual(users, localusers))
             // console.log(users.data)
             if(!_.isEqual(users, localusers)){
               myWorker.postMessage({type:"Update One", value: users.data[isEditable]});
             }
-              
             break;
           
           case "DELETE":
-
+            // console.log(this.state.isDeleteable);
+            myWorker.postMessage({type:"Delete One", value: isDeleteable});
             break;
 
           default:
@@ -141,23 +142,25 @@ class App extends React.Component {
     myWorker.onmessage = (user) => {
       myWorker.postMessage({type: "UpdateOne", value: {id: user.data[0]._id, username: username, password: password, carID: carID}})
       myWorker.onmessage = (result) => {
-      if(result.data === 'Success'){
-        this.setState({lastAction: "UPDATE"})
-        this.syncData();
-      };
-    }
+        if(result.data === 'Success'){
+          this.setState({lastAction: "UPDATE"})
+          this.syncData();
+        };
+      }
     }
     
 
   }
 
   deleteData = userid => () => {
-    
+    console.log(userid);
     myWorker.postMessage({type: "Get one user", value: {id: userid}}); 
     myWorker.onmessage = (user) => {
+      console.log(user.data[0])
       myWorker.postMessage({type: "DeleteOne", value: {id: user.data[0]._id}})
       myWorker.onmessage = (result) => { 
         if(result.data === 'Success'){
+          this.setState({lastAction: "DELETE", isDeleteable: userid})
           this.syncData();
         };
       }
