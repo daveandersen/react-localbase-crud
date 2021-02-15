@@ -5,7 +5,7 @@ const worker = () => {
 
         switch (e.data.type) {
             //XMLHttpRequest
-            case "Input User":
+            case "DBInput":
                 var users = {}
 
                 var xhr = new XMLHttpRequest();
@@ -38,7 +38,7 @@ const worker = () => {
                 xhr.send(null);
                 break;
 
-            case "UpdateOne":
+            case "DBUpdate":
                 var data = {};
                 data.username = e.data.value.username 
                 data.password = e.data.value.password
@@ -59,7 +59,7 @@ const worker = () => {
                 xhr.send(json);
                 break;
             
-            case "DeleteOne":
+            case "DBDelete":
                 var xhr = new XMLHttpRequest();
                 xhr.open('DELETE', `http://localhost:5000/users/${e.data.value.id}`, true);
                 xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
@@ -74,7 +74,7 @@ const worker = () => {
                 xhr.send(null);
                 break;
             
-            case "DeleteAll":
+            case "DBClear":
                 var xhr = new XMLHttpRequest();
                 xhr.open('DELETE', `http://localhost:5000/users`, true);
                 xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
@@ -89,7 +89,7 @@ const worker = () => {
                 xhr.send(null);
                 break;
 
-            case "Get all users":
+            case "DBGetAll":
                 var xhr = new XMLHttpRequest();
                 xhr.open('GET', "http://localhost:5000/users", true);
                 xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
@@ -104,7 +104,7 @@ const worker = () => {
                 xhr.send(null);
                 break;
             
-            case "Get one user":
+            case "DBGetOne":
                 var xhr = new XMLHttpRequest();
                 console.log(e.data.value.id);
                 xhr.open('GET', `http://localhost:5000/users/${e.data.value.id}`, true);
@@ -121,42 +121,41 @@ const worker = () => {
                 xhr.send(null);
                 break;
             
-            //IndexedDB Operations
-            case "Get All":
+            // IndexedDB Operations
+            case "IDBGetAll":
                 console.log('Get All')
                 getData("Get All");
                 break;
 
-            case "Get Username":
+            case "IDBGetUsername":
                 getData("Get Username");
                 break;
 
-            case "Get Password":
+            case "IDBGetPassword":
                 getData("Get Password");
                 break;
 
-            case "Get CarID":
+            case "IDBGetCarID":
                 getData("Get CarID");
                 break;
 
-            case "Create User":
+            case "IDBCreate":
                 addData(e.data.value);
                 break;
             
-            case "Update One":
+            case "IDBUpdate":
                 updateOne(e.data.value)
                 break;
 
-            case "Delete One":
+            case "IDBDelete":
                 deleteOne(e.data.value)
                 break;
             
-            case "Delete User":
-                deleteData();
+            case "IDBClear":
+                clearData();
                 break;
 
             default:
-                //console.log("Hello from worker.js");
                 self.postMessage()
                 break;
         }
@@ -167,7 +166,6 @@ const worker = () => {
             var r = indexedDB.open("db");
             r.onsuccess = function(event){
                 db = event.target.result;
-                // var updatedData = {id: data.id, username: data.username, password: data.password, carID: data.carID}
                 var transaction = db.transaction(["users"], "readwrite");
 
                 transaction.oncomplete = function(event) {
@@ -191,36 +189,6 @@ const worker = () => {
                     console.log('Error has occured')
                 }
             }
-
-
-            // request.onsuccess = function(e) {
-            //     console.log(id);
-            //     db = request.result;
-
-            //     var transaction = db.transaction(["users"], "readwrite");
-
-            //     transaction.oncomplete = function(event) {
-            //         console.log('IndexedDB opened for: deleteOne')
-            //     };
-
-            //     transaction.onerror = function (event) {
-            //         console.log('Error has occured')
-            //     };
-
-            //     var objectStore = transaction.objectStore("users");
-
-            //     var objectStoreRequest = objectStore.delete(id);
-
-            //     objectStoreRequest.onsuccess = function(event) {
-            //         console.log('Data deleted')
-            //         postMessage('Done');
-            //     };
-
-            //     objectStoreRequest.onerror = function(event){
-            //         console.log('Error has occured')
-            //     }
-
-            // }
         }
 
         function updateOne(data){
@@ -284,7 +252,7 @@ const worker = () => {
             
         }
 
-        function deleteData(){
+        function clearData(){
             request.onsuccess = function(e) {
                 db = request.result;
 
