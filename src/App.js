@@ -72,6 +72,10 @@ class App extends React.Component {
           case "DELETE":
             myWorker.postMessage({type:"Delete One", value: isDeleteable});
             break;
+          
+          case "CLEAR":
+            myWorker.postMessage({type:"Delete User"});
+            break;
 
           default:
             myWorker.postMessage({type: "Delete User"});
@@ -158,9 +162,11 @@ class App extends React.Component {
   }
 
   deleteAll = () => {
+    console.log("keyo");
     myWorker.postMessage({type: "DeleteAll"})
     myWorker.onmessage = (result) => {
       if(result.data === 'Success'){
+        this.setState({lastAction: "CLEAR"})
         this.syncData();
       }
     }
