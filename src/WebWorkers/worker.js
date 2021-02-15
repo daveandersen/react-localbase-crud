@@ -96,9 +96,7 @@ const worker = () => {
                 xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
                 xhr.onload = function(){
                     var user = JSON.parse(xhr.responseText);
-                    console.log(user);
                     if(xhr.readyState === 4 && xhr.status === 200){
-                        console.log(user);
                         postMessage(user);
                     }
                     else {
@@ -244,7 +242,6 @@ const worker = () => {
         function addData(data){
             request.onsuccess = function(e) {
                 db = request.result;
-
                 var transaction = db.transaction(["users"], "readwrite");
 
                 transaction.oncomplete = function(event) {

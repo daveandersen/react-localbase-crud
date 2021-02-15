@@ -56,7 +56,7 @@ class App extends React.Component {
         switch(this.state.lastAction){
           case "INSERT":
             const inputData = {
-              id: users.data.length,
+              id: users.data.length-1,
               username: users.data[users.data.length-1].username,
               password: users.data[users.data.length-1].password,
               carID: users.data[users.data.length-1].carID
@@ -64,30 +64,26 @@ class App extends React.Component {
             myWorker.postMessage({type: "Create User", value: inputData});
             break;
           case "UPDATE":
-            console.log(users.data[isEditable]); 
-            // console.log(!_.isEqual(users, localusers))
-            // console.log(users.data)
             if(!_.isEqual(users, localusers)){
               myWorker.postMessage({type:"Update One", value: users.data[isEditable]});
             }
             break;
           
           case "DELETE":
-            // console.log(this.state.isDeleteable);
             myWorker.postMessage({type:"Delete One", value: isDeleteable});
             break;
 
           default:
             myWorker.postMessage({type: "Delete User"});
             users.data.forEach((user) => {
-            const inputData = {
-              id: user.id,
-              username: user.username,
-              password: user.password,
-              carID: user.carID
-            }
-            myWorker.postMessage({type: "Create User", value: inputData})
-          });
+              const inputData = {
+                id: user.id,
+                username: user.username,
+                password: user.password,
+                carID: user.carID
+              }
+              myWorker.postMessage({type: "Create User", value: inputData});
+            })
             break;
         };
         this.updateState();
@@ -132,12 +128,6 @@ class App extends React.Component {
     const username = e.target.username.value;
     const password = e.target.password.value;
     const carID = e.target.carID.value;
-    const { data, isEditable } = this.state; 
-
-    data[isEditable].username = username;
-    data[isEditable].password = password;
-    data[isEditable].carID = carID; 
-
     myWorker.postMessage({type: "Get one user", value: {id: userid}});
     myWorker.onmessage = (user) => {
       myWorker.postMessage({type: "UpdateOne", value: {id: user.data[0]._id, username: username, password: password, carID: carID}})
