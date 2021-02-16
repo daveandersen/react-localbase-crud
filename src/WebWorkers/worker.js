@@ -346,52 +346,6 @@ const worker = () => {
                 }
             }
         }
-
-
-        //Other Functions
-        // function compareData(type){
-        //     switch(type){
-        //         case "INSERT":
-        //             var xhr = new XMLHttpRequest();
-        //             xhr.open('GET', "http://localhost:5000/users", true);
-        //             xhr.setRequestHeader('Content-type', 'Application/json; charset=utf-8');
-        //             xhr.onload = function(){
-        //                 var users = JSON.parse(xhr.responseText);
-        //                 if(xhr.readyState === 4 && xhr.status === 200){
-        //                     console.log('Hello on XML')
-        //                     console.log(users);
-        //                     request.onsuccess = function (e) {
-        //                         db = request.result;
-                
-        //                         var transaction = db.transaction(["users"], "readwrite");
-        //                         transaction.oncomplete = function (event) {
-        //                             console.log('IndexedDB opened for: getData')
-        //                         };
-                
-        //                         transaction.onerror = function (event) {
-        //                             // Don't forget to handle errors!
-        //                         };
-                
-        //                         var objectStore = transaction.objectStore("users");
-        //                         var request2 = objectStore.getAll();
-
-        //                         request2.onsuccess = function(event) {
-        //                             console.log('Hello on IndexedDB')
-        //                             console.log(event.target.result);
-        //                         }
-                                
-        //                     }
-        //                 } else {
-        //                     console.error("Error has occured");
-        //                 }
-        //             }
-        //             xhr.send(null);
-        //             break;
-
-        //         default:
-        //             break;
-        //     }
-        // }
     }
 }
 
